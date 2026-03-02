@@ -1,8 +1,8 @@
 {
   "bootstrap": {
     "server": "couchbase://couchbase-edge",
-    "username": "Administrator",
-    "password": "password",
+    "username": "$COUCHBASE_USERNAME",
+    "password": "$COUCHBASE_PASSWORD",
     "server_tls_skip_verify": true,
     "use_tls_server": false
   },

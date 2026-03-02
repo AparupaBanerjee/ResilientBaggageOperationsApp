@@ -45,6 +45,9 @@ services:
     ports:
       - "4984:4984"
       - "4985:4985"
+    environment:
+      - COUCHBASE_USERNAME=${COUCHBASE_USERNAME:-Administrator}
+      - COUCHBASE_PASSWORD=${COUCHBASE_PASSWORD:-password}
     volumes:
       - ./sync-gateway-config.json:/etc/sync_gateway/config.json:ro
     depends_on:

@@ -3,9 +3,9 @@ set -euo pipefail
 
 EDGE_URL="http://localhost:8091"
 MAIN_URL="http://localhost:8092"
-USERNAME="Administrator"
-PASSWORD="password"
-BUCKET="baggage"
+USERNAME="${COUCHBASE_USERNAME:-Administrator}"
+PASSWORD="${COUCHBASE_PASSWORD:-password}"
+BUCKET="${COUCHBASE_BUCKET:-baggage}"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
