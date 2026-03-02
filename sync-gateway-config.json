@@ -1,0 +1,21 @@
+{
+  "bootstrap": {
+    "server": "couchbase://couchbase-edge",
+    "username": "Administrator",
+    "password": "password",
+    "server_tls_skip_verify": true,
+    "use_tls_server": false
+  },
+  "api": {
+    "admin_interface": "0.0.0.0:4985",
+    "public_interface": "0.0.0.0:4984",
+    "admin_interface_authentication": false,
+    "metrics_interface_authentication": false
+  },
+  "logging": {
+    "console": {
+      "log_level": "info",
+      "log_keys": ["HTTP", "Replicate"]
+    }
+  }
+}

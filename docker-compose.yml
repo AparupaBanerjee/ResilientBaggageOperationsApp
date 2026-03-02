@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  couchbase-edge:
+    image: couchbase:community-7.1.1
+    container_name: couchbase-edge
+    hostname: couchbase-edge
+    ports:
+      - "8091:8091"
+      - "8093:8093"
+      - "11210:11210"
+    networks:
+      - baggage-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8091/pools"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - couchbase-edge-data:/opt/couchbase/var
+
+  couchbase-main:
+    image: couchbase:community-7.1.1
+    container_name: couchbase-main
+    hostname: couchbase-main
+    ports:
+      - "8092:8091"
+      - "8094:8093"
+      - "11211:11210"
+    networks:
+      - baggage-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8091/pools"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - couchbase-main-data:/opt/couchbase/var
+
+  sync-gateway:
+    image: couchbase/sync-gateway:3.1.0-community
+    container_name: sync-gateway
+    ports:
+      - "4984:4984"
+      - "4985:4985"
+    volumes:
+      - ./sync-gateway-config.json:/etc/sync_gateway/config.json:ro
+    depends_on:
+      couchbase-edge:
+        condition: service_healthy
+    networks:
+      - baggage-net
+    restart: on-failure
+
+  backend:
+    build: ./backend
+    container_name: baggage-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      couchbase-edge:
+        condition: service_healthy
+      couchbase-main:
+        condition: service_healthy
+    networks:
+      - baggage-net
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: baggage-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - baggage-net
+
+networks:
+  baggage-net:
+    driver: bridge
+
+volumes:
+  couchbase-edge-data:
+  couchbase-main-data:
