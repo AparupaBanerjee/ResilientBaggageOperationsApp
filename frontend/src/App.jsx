@@ -27,7 +27,7 @@ export default function App() {
 
       {/* Content — starts below the 44px status bar */}
       <div style={{
-        paddingTop: '44px',
+        paddingTop: '56px',
         paddingLeft: '24px',
         paddingRight: '24px',
         paddingBottom: '24px',
