@@ -51,6 +51,32 @@ export default function App() {
           </div>
         )}
 
+        {/* Page heading */}
+        <div style={{
+          paddingTop: '8px',
+          paddingBottom: '4px',
+          borderBottom: '1px solid #30363d',
+        }}>
+          <h1 style={{
+            fontFamily: 'Inter',
+            fontSize: '22px',
+            fontWeight: 600,
+            color: '#e6edf3',
+            letterSpacing: '-0.01em',
+            margin: 0,
+          }}>
+            Swedavia Baggage Operations
+          </h1>
+          <p style={{
+            fontFamily: 'Inter',
+            fontSize: '12px',
+            color: '#7d8590',
+            margin: '4px 0 0 0',
+          }}>
+            Resilient edge-first baggage handling — online, offline, and back again.
+          </p>
+        </div>
+
         {/* Couchbase node counts — key demo component */}
         <CouchbaseStats health={health} />
 
