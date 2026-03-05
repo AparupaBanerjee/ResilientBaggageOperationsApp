@@ -1,18 +1,35 @@
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import StatusBar           from './components/StatusBar.jsx'
-import CouchbaseStats      from './components/CouchbaseStats.jsx'
+import ThroughputChart     from './components/ThroughputChart.jsx'
 import FlightBoard         from './components/FlightBoard.jsx'
+import FlightCountdown     from './components/FlightCountdown.jsx'
 import SimulationControls  from './components/SimulationControls.jsx'
 import BaggageTable        from './components/BaggageTable.jsx'
-import { useHealth }       from './hooks/useHealth.js'
+import BeltHeatmap         from './components/BeltHeatmap.jsx'
+import DigitalTwin         from './components/DigitalTwin.jsx'
+import ROIDashboard        from './components/ROIDashboard.jsx'
+import IntegrationsPanel   from './components/IntegrationsPanel.jsx'
+import AuditLog            from './components/AuditLog.jsx'
+import AlertRail           from './components/AlertRail.jsx'
+import ShiftSummary               from './components/ShiftSummary.jsx'
+import HybridArchitectureStatus   from './components/HybridArchitectureStatus.jsx'
+import { useHealth }              from './hooks/useHealth.js'
+
+const TABS = [
+  { id: 'ops',     label: 'LIVE OPS',     desc: 'Simulation & real-time sync' },
+  { id: 'baggage', label: 'BAGGAGE HALL', desc: 'Bag registry' },
+  { id: 'system',  label: 'SYSTEM',       desc: 'Digital twin, integrations & audit log' },
+]
 
 export default function App() {
   const { health, error } = useHealth(3000)
+  const [alertOpen,   setAlertOpen]   = useState(false)
+  const [summaryOpen, setSummaryOpen] = useState(false)
+  const [roiOpen,     setRoiOpen]     = useState(false)
+  const [activeTab,   setActiveTab]   = useState('ops')
 
-  // Force an immediate health refresh (called after simulation actions)
-  const refresh = useCallback(() => {
-    // Health hook polls on its own; no action needed but useful as a callback hook
-  }, [])
+
+  const refresh = useCallback(() => {}, [])
 
   return (
     <div style={{
@@ -21,85 +38,162 @@ export default function App() {
       color: '#e6edf3',
       padding: '0',
       margin: '0',
+      marginRight: alertOpen ? '276px' : '0',
+      transition: 'margin-right 0.2s ease',
     }}>
-      {/* Fixed status bar */}
+      {/* ── Fixed header ── */}
       <StatusBar health={health} />
 
-      {/* Content — starts below the 44px status bar */}
+      {/* ── Fixed tab bar ── */}
       <div style={{
-        paddingTop: '56px',
+        position: 'fixed',
+        top: '64px',
+        left: 0,
+        right: alertOpen ? '276px' : 0,
+        height: '40px',
+        background: '#0d1117',
+        borderBottom: '1px solid #21262d',
+        display: 'flex',
+        alignItems: 'stretch',
+        paddingLeft: '24px',
+        gap: '0',
+        zIndex: 90,
+        transition: 'right 0.2s ease',
+      }}>
+        {TABS.map(tab => {
+          const active = tab.id === activeTab
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                borderBottom: active ? '2px solid #388bfd' : '2px solid transparent',
+                color: active ? '#e6edf3' : '#484f58',
+                fontFamily: 'IBM Plex Mono',
+                fontSize: '11px',
+                fontWeight: active ? 700 : 400,
+                letterSpacing: '0.08em',
+                padding: '0 20px',
+                cursor: 'pointer',
+                transition: 'color 0.15s, border-color 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#7d8590' }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.color = '#484f58' }}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
+
+        {/* Active tab descriptor */}
+        <span style={{
+          fontFamily: 'IBM Plex Mono',
+          fontSize: '10px',
+          color: '#30363d',
+          alignSelf: 'center',
+          paddingLeft: '16px',
+          letterSpacing: '0.04em',
+        }}>
+          {TABS.find(t => t.id === activeTab)?.desc}
+        </span>
+      </div>
+
+      {/* ── Modals ── */}
+      <AlertRail health={health} open={alertOpen} onToggle={() => setAlertOpen(o => !o)} />
+      <ShiftSummary open={summaryOpen} onClose={() => setSummaryOpen(false)} />
+
+      {roiOpen && (
+        <div
+          onClick={() => setRoiOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: '#0d111799',
+            zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ width: 'min(900px, 92vw)', maxHeight: '85vh', overflowY: 'auto', borderRadius: '8px' }}
+          >
+            <ROIDashboard onClose={() => setRoiOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* ── Page content ── */}
+      <div style={{
+        paddingTop: '104px',   /* 64px header + 40px tab bar */
         paddingLeft: '24px',
         paddingRight: '24px',
-        paddingBottom: '24px',
+        paddingBottom: '32px',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
       }}>
 
-        {/* Connection error banner */}
         {error && (
           <div style={{
-            background: '#3d1515',
-            border: '1px solid #b22222',
-            borderRadius: '4px',
-            padding: '8px 14px',
-            fontSize: '12px',
-            fontFamily: 'IBM Plex Mono',
-            color: '#b22222',
+            background: '#3d1515', border: '1px solid #b22222',
+            borderRadius: '4px', padding: '8px 14px',
+            fontSize: '12px', fontFamily: 'IBM Plex Mono', color: '#b22222',
           }}>
             Backend unreachable: {error} — is docker-compose running?
           </div>
         )}
 
-        {/* Page heading */}
+        {/* ══════════════════════════════════════════════
+            TAB 1 — LIVE OPS
+        ══════════════════════════════════════════════ */}
+        {activeTab === 'ops' && (
+          <>
+            {/* Flight countdown strip */}
+            <FlightCountdown />
+
+            {/* Hybrid architecture + Throughput */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'stretch' }}>
+              <HybridArchitectureStatus isCloudOnline={health?.online ?? false} health={health} />
+              <ThroughputChart health={health} />
+            </div>
+
+            {/* FlightBoard + SimulationControls */}
+            <div style={{ display: 'grid', gridTemplateColumns: '60% 40%', gap: '16px' }}>
+              <div style={{ minHeight: '260px' }}>
+                <FlightBoard />
+              </div>
+              <div style={{ minHeight: '260px' }}>
+                <SimulationControls health={health} onHealthChange={refresh} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════════
+            TAB 2 — BAGGAGE HALL
+        ══════════════════════════════════════════════ */}
+        {activeTab === 'baggage' && (
+          <>
+            <BaggageTable />
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════════
+            TAB 3 — SYSTEM
+        ══════════════════════════════════════════════ */}
+        {activeTab === 'system' && (
+          <>
+            <DigitalTwin />
+            <BeltHeatmap />
+            <IntegrationsPanel />
+            <AuditLog />
+          </>
+        )}
+
         <div style={{
-          paddingTop: '8px',
-          paddingBottom: '4px',
-          borderBottom: '1px solid #30363d',
-        }}>
-          <h1 style={{
-            fontFamily: 'Inter',
-            fontSize: '22px',
-            fontWeight: 600,
-            color: '#e6edf3',
-            letterSpacing: '-0.01em',
-            margin: 0,
-          }}>
-            Swedavia Baggage Operations
-          </h1>
-          <p style={{
-            fontFamily: 'Inter',
-            fontSize: '12px',
-            color: '#7d8590',
-            margin: '4px 0 0 0',
-          }}>
-            Resilient edge-first baggage handling — online, offline, and back again.
-          </p>
-        </div>
-
-        {/* Couchbase node counts — key demo component */}
-        <CouchbaseStats health={health} />
-
-        {/* Two-column middle row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '60% 40%', gap: '16px' }}>
-          <div style={{ minHeight: '260px' }}>
-            <FlightBoard />
-          </div>
-          <div style={{ minHeight: '260px' }}>
-            <SimulationControls health={health} onHealthChange={refresh} />
-          </div>
-        </div>
-
-        {/* Baggage table — full width */}
-        <BaggageTable />
-
-        {/* Footer */}
-        <div style={{
-          textAlign: 'center',
-          fontSize: '11px',
-          color: '#484f58',
-          fontFamily: 'IBM Plex Mono',
-          paddingTop: '8px',
+          textAlign: 'center', fontSize: '11px',
+          color: '#30363d', fontFamily: 'IBM Plex Mono', paddingTop: '8px',
         }}>
           Swedavia Resilient Baggage Operations · Hackathon Demo ·{' '}
           Edge: localhost:8091 · Main: localhost:8092 · SGW: localhost:4984

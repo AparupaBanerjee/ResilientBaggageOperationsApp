@@ -1,11 +1,13 @@
 import logging
+from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, HTTPException
-from couchbase.exceptions import DocumentExistsException
+from fastapi import APIRouter, HTTPException, Request
+from couchbase.exceptions import DocumentExistsException, DocumentNotFoundException
 
 import db
 from models import FlightCreate
+from audit import write_audit
 
 router = APIRouter(prefix="/flights", tags=["flights"])
 logger = logging.getLogger(__name__)
@@ -46,3 +48,138 @@ def create_flight(flight: FlightCreate):
         raise HTTPException(500, f"Upsert error: {exc}")
 
     return doc
+
+
+@router.post("/{flight_id}/cancel", response_model=dict)
+def cancel_flight(flight_id: str, request: Request):
+    """
+    Cancel a flight with smart bag distribution (BRS/DCS pattern):
+      - check_in bags  → rerouted to alternate flight with same destination (if found)
+                         else → offloaded to collection belt RCL
+      - in_transit / loaded bags → on_hold (physical retrieval required)
+      - delivered / already offloaded → untouched
+    Works fully offline — Edge node handles this autonomously if cloud is down.
+    """
+    if db.edge_collection is None or db.edge_cluster is None:
+        raise HTTPException(503, "Edge Couchbase not connected")
+
+    op = request.headers.get("x-operator-id", "anonymous")
+    now = datetime.now(timezone.utc).isoformat()
+
+    # ── 1. Update the flight document ────────────────────────────────────────
+    flight_doc_id = f"flight::{flight_id}"
+    try:
+        res = db.edge_collection.get(flight_doc_id)
+        flight = res.content_as[dict]
+    except DocumentNotFoundException:
+        raise HTTPException(404, f"Flight {flight_id} not found")
+
+    if flight.get("status") == "cancelled":
+        raise HTTPException(409, f"Flight {flight_id} is already cancelled")
+
+    prev_status  = flight.get("status", "unknown")
+    destination  = flight.get("destination", "")
+    flight["status"]       = "cancelled"
+    flight["last_updated"] = now
+    db.edge_collection.replace(flight_doc_id, flight)
+
+    # ── 2. Find alternate active flight to same destination ───────────────────
+    alternate_flight_id  = None
+    alternate_belt       = None
+    dest_escaped = destination.replace("'", "\\'")
+    try:
+        alt_result = db.edge_cluster.query(
+            f"SELECT f.flight_id, f.belt "
+            f"FROM `{db.BUCKET_NAME}` f "
+            f"WHERE f.`type` = 'flight' "
+            f"  AND f.destination = '{dest_escaped}' "
+            f"  AND f.flight_id != '{flight_id}' "
+            f"  AND f.status IN ['scheduled', 'boarding'] "
+            f"ORDER BY f.departure_time ASC "
+            f"LIMIT 1"
+        )
+        alts = list(alt_result)
+        if alts:
+            alternate_flight_id = alts[0].get("flight_id")
+            alternate_belt      = alts[0].get("belt")
+    except Exception as exc:
+        logger.warning("cancel_flight: alternate flight lookup failed: %s", exc)
+
+    # ── 3. Fetch all bags for this flight ────────────────────────────────────
+    try:
+        result = db.edge_cluster.query(
+            f"SELECT META().id AS _doc_id, b.* "
+            f"FROM `{db.BUCKET_NAME}` b "
+            f"WHERE b.`type` = 'bag' AND b.flight_id = '{flight_id}'"
+        )
+        bags = list(result)
+    except Exception as exc:
+        logger.error("cancel_flight bag query error: %s", exc)
+        bags = []
+
+    # ── 4. Smart distribution ─────────────────────────────────────────────────
+    rerouted_count  = 0
+    on_hold_count   = 0
+    offloaded_count = 0
+
+    for bag in bags:
+        doc_id = bag.get("_doc_id")
+        if not doc_id:
+            continue
+        bag_status = bag.get("status", "")
+
+        # Skip bags that are already resolved
+        if bag_status in ("delivered", "offloaded"):
+            continue
+
+        try:
+            res    = db.edge_collection.get(doc_id)
+            bagdoc = res.content_as[dict]
+
+            if bag_status == "check_in" and alternate_flight_id:
+                # Reroute: redirect to alternate flight + belt
+                bagdoc["flight_id"]        = alternate_flight_id
+                bagdoc["destination_belt"] = alternate_belt
+                bagdoc["status"]           = "rerouted"
+                bagdoc["last_updated"]     = now
+                db.edge_collection.replace(doc_id, bagdoc)
+                rerouted_count += 1
+
+            elif bag_status in ("in_transit", "loaded"):
+                # Physical retrieval required — put on hold, clear belt
+                bagdoc["status"]           = "on_hold"
+                bagdoc["destination_belt"] = None
+                bagdoc["last_updated"]     = now
+                db.edge_collection.replace(doc_id, bagdoc)
+                on_hold_count += 1
+
+            else:
+                # check_in with no alternate, or any unrecognised status → collection terminal
+                # Detach from cancelled flight so it no longer appears under that flight tab
+                bagdoc["status"]           = "offloaded"
+                bagdoc["destination_belt"] = "RCL"   # Reclaim / collection belt
+                bagdoc["flight_id"]        = None
+                bagdoc["last_updated"]     = now
+                db.edge_collection.replace(doc_id, bagdoc)
+                offloaded_count += 1
+
+        except Exception as exc:
+            logger.warning("cancel_flight: failed to process %s: %s", doc_id, exc)
+
+    # ── 5. Write audit entry ──────────────────────────────────────────────────
+    detail = (
+        f"{flight_id} ({prev_status} → cancelled) · "
+        f"rerouted={rerouted_count} (→{alternate_flight_id or 'none'}) "
+        f"on_hold={on_hold_count} offloaded={offloaded_count}"
+    )
+    write_audit(op, "flight_cancel", flight_doc_id, detail=detail)
+
+    return {
+        "flight_id":        flight_id,
+        "status":           "cancelled",
+        "alternate_flight": alternate_flight_id,
+        "rerouted_bags":    rerouted_count,
+        "on_hold_bags":     on_hold_count,
+        "offloaded_bags":   offloaded_count,
+        "timestamp":        now,
+    }
