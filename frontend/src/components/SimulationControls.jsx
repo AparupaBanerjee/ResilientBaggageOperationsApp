@@ -303,8 +303,6 @@ export default function SimulationControls({ health, onHealthChange, open, onTog
               <BulkGenerate onAdd={addLog} online={online} />
               <div style={{ borderTop: '1px solid #21262d' }} />
               <QuickAddBag onAdd={addLog} online={online} />
-              <div style={{ borderTop: '1px solid #21262d' }} />
-              <FlightActions onAdd={addLog} />
             </div>
           </div>
 

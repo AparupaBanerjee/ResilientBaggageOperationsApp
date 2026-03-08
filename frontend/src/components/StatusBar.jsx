@@ -129,18 +129,15 @@ const TABS = [
   { id: 'audit',        label: 'AUDIT' },
 ]
 
-export default function StatusBar({ health, activeTab, onTabChange }) {
-  const online  = health?.online ?? true
-  const pending = health?.pending_sync_count ?? 0
+export default function StatusBar({ health, activeTab, onTabChange, onLogout }) {
+  const online   = health?.online ?? true
+  const pending  = health?.pending_sync_count ?? 0
+  const operator = localStorage.getItem('operator_id') || ''
 
-  const [operator, setOperator] = useState(
-    () => localStorage.getItem('operator_id') || ''
-  )
-
-  const handleOperatorChange = (e) => {
-    const val = e.target.value
-    setOperator(val)
-    localStorage.setItem('operator_id', val)
+  const handleLogout = () => {
+    localStorage.removeItem('operator_auth')
+    localStorage.removeItem('operator_id')
+    onLogout?.()
   }
 
   return (
@@ -158,13 +155,42 @@ export default function StatusBar({ health, activeTab, onTabChange }) {
       padding: '0 24px',
       zIndex: 100,
     }}>
-      {/* Left — Swedavia logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-        <img
-          src="/swedavia-logo.png"
-          alt="Swedavia"
-          style={{ height: '36px', width: 'auto', opacity: 0.95 }}
-        />
+      {/* Left — App name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        {/* Baggage conveyor logo */}
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          {/* Conveyor belt body */}
+          <rect x="2" y="13" width="24" height="7" rx="3.5" stroke="#f59e0b" strokeWidth="1.8"/>
+          {/* Belt dashes */}
+          <line x1="7" y1="13" x2="7" y2="20" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="2,2"/>
+          <line x1="14" y1="13" x2="14" y2="20" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="2,2"/>
+          <line x1="21" y1="13" x2="21" y2="20" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="2,2"/>
+          {/* Wheels */}
+          <circle cx="5.5" cy="16.5" r="3" fill="#0d1117" stroke="#f59e0b" strokeWidth="1.8"/>
+          <circle cx="22.5" cy="16.5" r="3" fill="#0d1117" stroke="#f59e0b" strokeWidth="1.8"/>
+          {/* Bag on belt */}
+          <rect x="9" y="6" width="10" height="8" rx="2" fill="#1f6feb" stroke="#388bfd" strokeWidth="1.2"/>
+          {/* Bag handle */}
+          <path d="M11.5 6 Q14 3.5 16.5 6" stroke="#388bfd" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+          {/* Bag tag */}
+          <line x1="17" y1="10" x2="19.5" y2="10" stroke="#f59e0b" strokeWidth="1.2" strokeLinecap="round"/>
+        </svg>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          <span style={{
+            fontFamily: 'IBM Plex Mono', fontSize: '15px', fontWeight: 800,
+            color: '#e6edf3', letterSpacing: '0.07em', whiteSpace: 'nowrap',
+            lineHeight: 1.1,
+          }}>
+            Resilient Baggage Operations
+          </span>
+          <span style={{
+            fontFamily: 'IBM Plex Mono', fontSize: '9px', fontWeight: 500,
+            color: '#f59e0b', letterSpacing: '0.12em', whiteSpace: 'nowrap',
+          }}>
+            ARN · STOCKHOLM ARLANDA
+          </span>
+        </div>
       </div>
 
       {/* Center — Tab navigation */}
@@ -200,33 +226,34 @@ export default function StatusBar({ health, activeTab, onTabChange }) {
       {/* Right — operator ID + connection status + pending */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
-        {/* Operator ID */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{
+        {/* Operator name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '10px', color: '#484f58', letterSpacing: '0.06em' }}>OP</span>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '12px', fontWeight: 700, color: '#e6edf3' }}>
+            {operator}
+          </span>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          style={{
+            background: 'transparent',
+            border: '1px solid #30363d',
+            borderRadius: '4px',
+            color: '#484f58',
             fontFamily: 'IBM Plex Mono',
             fontSize: '10px',
-            color: '#484f58',
             letterSpacing: '0.06em',
-          }}>OP</span>
-          <input
-            type="text"
-            value={operator}
-            onChange={handleOperatorChange}
-            placeholder="your-id"
-            maxLength={20}
-            style={{
-              background: '#0d1117',
-              border: '1px solid #30363d',
-              borderRadius: '4px',
-              color: operator ? '#e6edf3' : '#484f58',
-              fontFamily: 'IBM Plex Mono',
-              fontSize: '11px',
-              padding: '3px 8px',
-              outline: 'none',
-              width: '100px',
-            }}
-          />
-        </div>
+            padding: '4px 10px',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#b22222'; e.currentTarget.style.color = '#b22222' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = '#30363d'; e.currentTarget.style.color = '#484f58' }}
+        >
+          LOGOUT
+        </button>
 
         <div style={{ width: '1px', height: '20px', background: '#30363d' }} />
 

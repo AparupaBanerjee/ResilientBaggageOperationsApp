@@ -13,8 +13,9 @@ const STATUS_COLOR = {
   delivered:  '#484f58',
 }
 
-const BELTS   = ['A1', 'A2', 'B1', 'B2', 'C1']
-const FLIGHTS = { A1: 'SK101', A2: 'SK202', B1: 'SK303', B2: 'SK404', C1: 'SK505' }
+const BELTS   = ['A1', 'A2', 'B1', 'B2']
+const FLIGHTS = { A1: 'SK101', A2: 'SK202', B1: 'SK303', B2: 'SK404' }
+const DEMO_COLOR = { A1: '#238636', A2: '#d29922', B1: '#9e6a03', B2: '#b22222' }
 
 function buildBeltData(bags, conveyors) {
   const map = {}
@@ -41,8 +42,8 @@ function buildBeltData(bags, conveyors) {
   return map
 }
 
-function BeltCell({ beltId, data }) {
-  const max      = 10   // bags before "full"
+function BeltCell({ beltId, data, demoColor }) {
+  const max      = 15   // bags before "full"
   const fillPct  = Math.min(100, (data.total / max) * 100)
   const isJam    = data.jam
   const isFault  = data.status === 'FAULT'
@@ -81,7 +82,7 @@ function BeltCell({ beltId, data }) {
         <div style={{
           height: '100%',
           width: `${fillPct}%`,
-          background: isJam ? '#b22222' : fillPct > 80 ? '#b22222' : fillPct > 50 ? '#9e6a03' : '#238636',
+          background: demoColor ?? (isJam ? '#b22222' : fillPct > 75 ? '#b22222' : fillPct > 45 ? '#9e6a03' : fillPct > 20 ? '#d29922' : '#238636'),
           borderRadius: '2px',
         }} />
       </div>
@@ -173,7 +174,7 @@ export default function BeltHeatmap() {
 
       {!collapsed && (
         <div style={{ padding: '12px 16px', display: 'flex', gap: '10px' }}>
-          {BELTS.map(b => <BeltCell key={b} beltId={b} data={beltData[b] ?? { total: 0, byStatus: {} }} />)}
+          {BELTS.map(b => <BeltCell key={b} beltId={b} data={beltData[b] ?? { total: 0, byStatus: {} }} demoColor={DEMO_COLOR[b]} />)}
         </div>
       )}
     </div>

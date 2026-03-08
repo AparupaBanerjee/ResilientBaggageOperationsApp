@@ -252,6 +252,9 @@ export default function BaggageTable() {
                 <th style={thStyle('passenger_name')} onClick={() => handleSort('passenger_name')}>
                   Passenger <SortIcon active={sortCol === 'passenger_name'} dir={sortDir} />
                 </th>
+                <th style={thStyle('passenger_id')} onClick={() => handleSort('passenger_id')}>
+                  PAX ID <SortIcon active={sortCol === 'passenger_id'} dir={sortDir} />
+                </th>
                 <th style={thStyle('status')} onClick={() => handleSort('status')}>
                   Status <SortIcon active={sortCol === 'status'} dir={sortDir} />
                 </th>
@@ -303,6 +306,9 @@ export default function BaggageTable() {
                     </td>
                     <td style={{ color: '#e6edf3', fontSize: '12px' }}>
                       {bag.passenger_name}
+                    </td>
+                    <td style={{ fontFamily: 'IBM Plex Mono', fontSize: '11px', color: '#7d8590' }}>
+                      {bag.passenger_id ?? '—'}
                     </td>
                     <td>
                       {isOffloaded ? (

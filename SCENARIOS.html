@@ -99,7 +99,7 @@
   <h1>Complete Test Scenarios</h1>
   <p>Every simulation and operator action available in the Resilient Baggage Operations platform — with step-by-step instructions and flow diagrams for demonstration.</p>
   <div class="badge-row">
-    <span class="badge blue">13 SCENARIOS</span>
+    <span class="badge blue">12 SCENARIOS</span>
     <span class="badge amber">SEED · SYNC · CHAOS</span>
     <span class="badge green">SPLIT-BRAIN · CONFLICT</span>
     <span class="badge red">IATA COMPLIANCE</span>
@@ -115,14 +115,13 @@
     <a href="#s3" class="toc-item"><span class="toc-num">03</span><span class="toc-dot" style="background:#10b981"></span>Generate Load (Burst)</a>
     <a href="#s4" class="toc-item"><span class="toc-num">04</span><span class="toc-dot" style="background:#ef4444"></span>Simulate Network Outage</a>
     <a href="#s5" class="toc-item"><span class="toc-num">05</span><span class="toc-dot" style="background:#10b981"></span>Restore Connection</a>
-    <a href="#s6" class="toc-item"><span class="toc-num">06</span><span class="toc-dot" style="background:#f59e0b"></span>Misroute a Bag</a>
-    <a href="#s7" class="toc-item"><span class="toc-num">07</span><span class="toc-dot" style="background:#ef4444"></span>Flaky Write Mode</a>
-    <a href="#s8" class="toc-item"><span class="toc-num">08</span><span class="toc-dot" style="background:#ef4444"></span>RFID Sensor Blackout</a>
-    <a href="#s9" class="toc-item"><span class="toc-num">09</span><span class="toc-dot" style="background:#ef4444"></span>Inject Corrupt Document</a>
-    <a href="#s10" class="toc-item"><span class="toc-num">10</span><span class="toc-dot" style="background:#ef4444"></span>Write Storm (50 bags)</a>
-    <a href="#s11" class="toc-item"><span class="toc-num">11</span><span class="toc-dot" style="background:#8b5cf6"></span>Flight Actions (Delay/Cancel)</a>
-    <a href="#s12" class="toc-item"><span class="toc-num">12</span><span class="toc-dot" style="background:#ef4444"></span>Split-Brain Conflict</a>
-    <a href="#s13" class="toc-item"><span class="toc-num">13</span><span class="toc-dot" style="background:#f59e0b"></span>Passenger No-Show (IATA)</a>
+    <a href="#s6" class="toc-item"><span class="toc-num">06</span><span class="toc-dot" style="background:#ef4444"></span>Flaky Write Mode</a>
+    <a href="#s7" class="toc-item"><span class="toc-num">07</span><span class="toc-dot" style="background:#ef4444"></span>RFID Sensor Blackout</a>
+    <a href="#s8" class="toc-item"><span class="toc-num">08</span><span class="toc-dot" style="background:#ef4444"></span>Inject Corrupt Document</a>
+    <a href="#s9" class="toc-item"><span class="toc-num">09</span><span class="toc-dot" style="background:#ef4444"></span>Write Storm (50 bags)</a>
+    <a href="#s10" class="toc-item"><span class="toc-num">10</span><span class="toc-dot" style="background:#8b5cf6"></span>Flight Actions (Delay/Cancel)</a>
+    <a href="#s11" class="toc-item"><span class="toc-num">11</span><span class="toc-dot" style="background:#ef4444"></span>Split-Brain Conflict</a>
+    <a href="#s12" class="toc-item"><span class="toc-num">12</span><span class="toc-dot" style="background:#f59e0b"></span>Passenger No-Show (IATA)</a>
   </div>
 </div>
 
@@ -136,14 +135,13 @@
       <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0c5aa6">03 GENERATE LOAD</td><td style="padding:7px 10px;color:#475569">Add many bags at once (up to 50) to simulate a busy check-in period.</td></tr>
       <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">04 OUTAGE</td><td style="padding:7px 10px;color:#475569">Cut the link between the airport terminal and the cloud — bags still get processed locally.</td></tr>
       <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#10b981">05 RESTORE</td><td style="padding:7px 10px;color:#475569">Bring the link back — all bags written during the outage automatically sync to the cloud.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#f59e0b">06 MISROUTE</td><td style="padding:7px 10px;color:#475569">Send one bag to the wrong conveyor belt on purpose — see the system catch and alert on the mistake.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">07 FLAKY MODE</td><td style="padding:7px 10px;color:#475569">Make 30% of bag writes randomly fail — like a database having hiccups — and watch the system handle it.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">08 BLACKOUT</td><td style="padding:7px 10px;color:#475569">Turn off all RFID bag scanners for 30 seconds — no tracking data comes in during that window.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">09 CORRUPT DATA</td><td style="padding:7px 10px;color:#475569">Insert a broken bag record with missing and invalid fields — see the system flag it without crashing.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">10 WRITE STORM</td><td style="padding:7px 10px;color:#475569">Flood the system with 50 bags at the same time to prove it handles peak load without breaking.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8b5cf6">11 FLIGHT ACTIONS</td><td style="padding:7px 10px;color:#475569">Delay, cancel, or mark a flight arrived — and watch the system automatically reroute or hold its bags.</td></tr>
-      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">12 SPLIT-BRAIN</td><td style="padding:7px 10px;color:#475569">Cloud cancels a flight while the terminal is offline — when reconnected a human must decide what to do with the bags.</td></tr>
-      <tr><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#f59e0b">13 NO-SHOW</td><td style="padding:7px 10px;color:#475569">Mark a passenger as not boarded — the system instantly puts their bags on hold as required by IATA security rules.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">06 FLAKY MODE</td><td style="padding:7px 10px;color:#475569">Make 30% of bag writes randomly fail — like a database having hiccups — and watch the system handle it.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">07 BLACKOUT</td><td style="padding:7px 10px;color:#475569">Turn off all RFID bag scanners for 30 seconds — no tracking data comes in during that window.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">08 CORRUPT DATA</td><td style="padding:7px 10px;color:#475569">Insert a broken bag record with missing and invalid fields — see the system flag it without crashing.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">09 WRITE STORM</td><td style="padding:7px 10px;color:#475569">Flood the system with 50 bags at the same time to prove it handles peak load without breaking.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8b5cf6">10 FLIGHT ACTIONS</td><td style="padding:7px 10px;color:#475569">Delay, cancel, or mark a flight arrived — and watch the system automatically reroute or hold its bags.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">11 SPLIT-BRAIN</td><td style="padding:7px 10px;color:#475569">Cloud cancels a flight while the terminal is offline — when reconnected a human must decide what to do with the bags.</td></tr>
+      <tr><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#f59e0b">12 NO-SHOW</td><td style="padding:7px 10px;color:#475569">Mark a passenger as not boarded — the system instantly puts their bags on hold as required by IATA security rules.</td></tr>
     </tbody>
   </table>
 </div>
@@ -469,66 +467,10 @@
 <!-- ═══════════════════════════════════════════ -->
 <div class="section-divider"><div class="line"></div><h2>Chaos Engineering</h2><div class="line"></div></div>
 
-<!-- S6: MISROUTE -->
+<!-- S6: FLAKY MODE -->
 <div class="scenario" id="s6">
   <div class="scenario-header">
     <div class="scenario-num">06</div>
-    <div>
-      <div class="scenario-title">Misroute a Bag</div>
-      <div class="scenario-desc">Deliberately assign one active bag to the wrong conveyor belt — simulating a sorting system fault or incorrect gate assignment. Tests real-time anomaly detection.</div>
-      <div class="scenario-tags">
-        <span class="badge amber">ANOMALY</span>
-        <span class="badge red">MISROUTE</span>
-      </div>
-    </div>
-  </div>
-  <div class="scenario-body">
-    <div class="scenario-steps">
-      <div class="steps-title">Steps</div>
-      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Ensure bags are seeded</div><div class="step-detail">At least one active bag must exist (status not delivered).</div></div></div>
-      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Click MISROUTE BAG in controls</div><div class="step-code">POST /simulate/misroute</div></div></div>
-      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Read the event log</div><div class="step-detail">Shows: BAG-XXXXXXXX rerouted A1 → B2 (wrong belt)</div><div class="step-warn">⚠ MISROUTED appears in red in log</div></div></div>
-      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Check AlertRail (right panel)</div><div class="step-detail">Alert fires: MISROUTED BAG detected. Belt mismatch visible in BaggageTable.</div></div></div>
-      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Observe Workstation View</div><div class="step-detail">WS-2 CONVEYOR column flags the bag with incorrect belt assignment.</div></div></div>
-      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">One random bag gets destination_belt changed to a wrong belt. AlertRail fires HIGH severity alert. Auditor log records the misroute event. Belt Heatmap shows unexpected belt traffic.</div></div>
-    </div>
-    <div class="scenario-diagram">
-      <div>
-        <svg width="300" height="260" viewBox="0 0 300 260">
-          <!-- Bag -->
-          <rect x="90" y="10" width="120" height="30" rx="5" fill="#0d2e1a" stroke="#34d399"/>
-          <text x="150" y="29" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">BAG-A8F3  Flight SK101</text>
-          <!-- Normal route -->
-          <line x1="150" y1="40" x2="150" y2="68" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
-          <rect x="60" y="68" width="90" height="26" rx="5" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
-          <text x="105" y="84" text-anchor="middle" fill="#34d399" font-size="9">Correct: Belt A1</text>
-          <!-- Wrong route (solid red) -->
-          <line x1="150" y1="40" x2="220" y2="68" stroke="#ef4444" stroke-width="2"/>
-          <rect x="175" y="68" width="90" height="26" rx="5" fill="#2e0d0d" stroke="#ef4444" stroke-width="2"/>
-          <text x="220" y="84" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">WRONG: Belt B2</text>
-          <!-- X mark -->
-          <text x="212" y="58" fill="#ef4444" font-size="14" font-weight="700">✕</text>
-          <!-- Alert -->
-          <rect x="55" y="120" width="190" height="38" rx="6" fill="#2e0d0d" stroke="#ef4444" stroke-width="1.5"/>
-          <text x="150" y="136" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">⚡ HIGH ALERT: MISROUTED BAG</text>
-          <text x="150" y="151" text-anchor="middle" fill="#fca5a5" font-size="8">Belt mismatch detected — A1 vs B2</text>
-          <!-- Audit -->
-          <rect x="80" y="178" width="140" height="28" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
-          <text x="150" y="195" text-anchor="middle" fill="#60a5fa" font-size="8">Audit log: sim_misroute</text>
-          <!-- Workstation -->
-          <rect x="80" y="220" width="140" height="28" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
-          <text x="150" y="237" text-anchor="middle" fill="#60a5fa" font-size="8">WS-2 CONVEYOR flags bag</text>
-        </svg>
-        <div class="diag-caption">Belt mismatch → alert → audit log</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- S7: FLAKY MODE -->
-<div class="scenario" id="s7">
-  <div class="scenario-header">
-    <div class="scenario-num">07</div>
     <div>
       <div class="scenario-title">Flaky Write Mode</div>
       <div class="scenario-desc">Toggle a mode where ~30% of bag write operations randomly fail — simulating intermittent database or network instability without a full outage.</div>
@@ -577,9 +519,9 @@
 </div>
 
 <!-- S8: SENSOR BLACKOUT -->
-<div class="scenario" id="s8">
+<div class="scenario" id="s7">
   <div class="scenario-header">
-    <div class="scenario-num">08</div>
+    <div class="scenario-num">07</div>
     <div>
       <div class="scenario-title">RFID Sensor Blackout</div>
       <div class="scenario-desc">Suppress all RFID baggage scanner feeds for N seconds (5–120). Simulates hardware failure of conveyor scanners — bags stop being tracked during the blackout period.</div>
@@ -633,9 +575,9 @@
 </div>
 
 <!-- S9: CORRUPT DATA -->
-<div class="scenario" id="s9">
+<div class="scenario" id="s8">
   <div class="scenario-header">
-    <div class="scenario-num">09</div>
+    <div class="scenario-num">08</div>
     <div>
       <div class="scenario-title">Inject Corrupt Document</div>
       <div class="scenario-desc">Insert a deliberately malformed bag document — null flight_id, invalid status, negative weight, non-existent belt. Tests data validation, alerting, and display robustness.</div>
@@ -680,9 +622,9 @@
 </div>
 
 <!-- S10: WRITE STORM -->
-<div class="scenario" id="s10">
+<div class="scenario" id="s9">
   <div class="scenario-header">
-    <div class="scenario-num">10</div>
+    <div class="scenario-num">09</div>
     <div>
       <div class="scenario-title">Write Storm (50 Bags)</div>
       <div class="scenario-desc">Burst-insert 50 bags as fast as possible to stress-test write throughput and XDCR replication capacity. Alias for Generate Load with count=50.</div>
@@ -741,9 +683,9 @@
 <div class="section-divider"><div class="line"></div><h2>Flight Operations</h2><div class="line"></div></div>
 
 <!-- S11: FLIGHT ACTIONS -->
-<div class="scenario" id="s11">
+<div class="scenario" id="s10">
   <div class="scenario-header">
-    <div class="scenario-num">11</div>
+    <div class="scenario-num">10</div>
     <div>
       <div class="scenario-title">Flight Actions — Delay, Cancel, Arrive</div>
       <div class="scenario-desc">Operators can update flight status and trigger automatic cascade effects on registered baggage — rerouting, on-hold, and offload to Reclaim (RCL) based on airline policy rules.</div>
@@ -820,9 +762,9 @@
 <div class="section-divider"><div class="line"></div><h2>Split-Brain Conflict Resolution</h2><div class="line"></div></div>
 
 <!-- S12: SPLIT-BRAIN -->
-<div class="scenario" id="s12">
+<div class="scenario" id="s11">
   <div class="scenario-header">
-    <div class="scenario-num">12</div>
+    <div class="scenario-num">11</div>
     <div>
       <div class="scenario-title">Split-Brain Conflict — Cloud Cancel vs Edge</div>
       <div class="scenario-desc">The flagship demo. Cloud Ops Centre cancels a flight while the terminal is offline (XDCR down). When connection restores, a conflict is detected — a human operator must resolve it manually using one of two strategies.</div>
@@ -921,10 +863,10 @@
 <!-- ═══════════════════════════════════════════ -->
 <div class="section-divider"><div class="line"></div><h2>IATA Compliance — Passenger No-Show</h2><div class="line"></div></div>
 
-<!-- S13: PASSENGER NO-SHOW -->
-<div class="scenario" id="s13">
+<!-- S12: PASSENGER NO-SHOW -->
+<div class="scenario" id="s12">
   <div class="scenario-header">
-    <div class="scenario-num">13</div>
+    <div class="scenario-num">12</div>
     <div>
       <div class="scenario-title">Passenger No-Show (IATA Rule)</div>
       <div class="scenario-desc">IATA security regulation requires that if a passenger does not board, their registered baggage must be immediately placed on hold and offloaded before departure. This scenario demonstrates automated compliance enforcement.</div>

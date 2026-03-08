@@ -112,6 +112,7 @@ def create_bag(bag: BagCreate, request: Request):
             pass  # permissive — if lookup fails, allow the write
 
     bag_id = f"BAG-{uuid.uuid4().hex[:8].upper()}"
+    pax_id = f"PAX-{uuid.uuid4().hex[:8].upper()}"
     belt   = _get_belt_for_flight(bag.flight_id)
     now    = datetime.now(timezone.utc).isoformat()
     op     = _operator(request)
@@ -119,6 +120,7 @@ def create_bag(bag: BagCreate, request: Request):
     doc = {
         "type":             "bag",
         "bag_id":           bag_id,
+        "passenger_id":     pax_id,
         "flight_id":        bag.flight_id,
         "passenger_name":   bag.passenger_name,
         "status":           bag.status.value,
@@ -148,7 +150,6 @@ def create_bag(bag: BagCreate, request: Request):
 
     # Create matching passenger record
     try:
-        pax_id = f"PAX-{uuid.uuid4().hex[:8].upper()}"
         db.edge_collection.insert(pax_id, {
             "type":            "passenger",
             "passenger_id":    pax_id,

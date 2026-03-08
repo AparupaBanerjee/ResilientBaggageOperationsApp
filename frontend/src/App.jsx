@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import LoginScreen          from './components/LoginScreen.jsx'
 import StatusBar           from './components/StatusBar.jsx'
 import FlightBoard         from './components/FlightBoard.jsx'
 
@@ -20,6 +21,9 @@ import BaggageTable             from './components/BaggageTable.jsx'
 import { useHealth }              from './hooks/useHealth.js'
 
 export default function App() {
+  const [loggedIn,    setLoggedIn]    = useState(
+    () => localStorage.getItem('operator_auth') === '1' && !!localStorage.getItem('operator_id')
+  )
   const { health, error } = useHealth(3000)
   const [alertOpen,   setAlertOpen]   = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
@@ -28,6 +32,8 @@ export default function App() {
   const [activeTab,   setActiveTab]   = useState('ops')
 
   const refresh = useCallback(() => {}, [])
+
+  if (!loggedIn) return <LoginScreen onLogin={() => setLoggedIn(true)} />
 
   return (
     <div style={{
@@ -41,7 +47,7 @@ export default function App() {
       transition: 'margin-left 0.2s ease, margin-right 0.2s ease',
     }}>
       {/* ── Fixed header with tabs ── */}
-      <StatusBar health={health} activeTab={activeTab} onTabChange={setActiveTab} />
+      <StatusBar health={health} activeTab={activeTab} onTabChange={setActiveTab} onLogout={() => setLoggedIn(false)} />
 
       {/* ── Persistent overlays (any tab) ── */}
       <SimulationControls health={health} onHealthChange={refresh} open={simOpen} onToggle={() => setSimOpen(o => !o)} />

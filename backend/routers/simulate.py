@@ -191,11 +191,12 @@ def generate_load(count: int = 10, request: Request = None):
             "sync_pending": not db.is_online,
         }
         try:
+            pax_id = f"PAX-{uuid.uuid4().hex[:8].upper()}"
+            doc["passenger_id"] = pax_id
             db.edge_collection.insert(bag_id, doc)
             db.record_bag_write()
             inserted += 1
             # Create matching passenger record
-            pax_id = f"PAX-{uuid.uuid4().hex[:8].upper()}"
             db.edge_collection.insert(pax_id, {
                 "type":            "passenger",
                 "passenger_id":    pax_id,
@@ -309,6 +310,7 @@ def seed_data(request: Request = None):
         bag_doc = {
             "type": "bag",
             "bag_id": bag_id,
+            "passenger_id": pax_id,
             "flight_id": flight["flight_id"],
             "passenger_name": passenger,
             "status": status,
