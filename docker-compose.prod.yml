@@ -1,0 +1,131 @@
+version: '3.8'
+
+# Production compose — uses pre-built images from Docker Hub.
+# No source code or build tools needed on the target machine.
+#
+# Files needed on the other Mac:
+#   - docker-compose.prod.yml  (this file)
+#   - .env                     (copy from this repo)
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#   # Wait ~2 min, then: curl -X POST http://localhost:8000/simulate/seed
+#   # Open http://localhost:3000
+
+services:
+  couchbase-edge:
+    image: couchbase:community-7.1.1
+    container_name: couchbase-edge
+    hostname: couchbase-edge
+    ports:
+      - "8091:8091"
+      - "8093:8093"
+      - "11210:11210"
+    networks:
+      - baggage-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8091/pools"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - couchbase-edge-data:/opt/couchbase/var
+
+  couchbase-main:
+    image: couchbase:community-7.1.1
+    container_name: couchbase-main
+    hostname: couchbase-main
+    ports:
+      - "8092:8091"
+      - "8094:8093"
+      - "11211:11210"
+    networks:
+      - baggage-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8091/pools"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - couchbase-main-data:/opt/couchbase/var
+
+  sync-gateway:
+    image: couchbase/sync-gateway:3.1.0-community
+    container_name: sync-gateway
+    ports:
+      - "4984:4984"
+      - "4985:4985"
+    environment:
+      - COUCHBASE_USERNAME=${COUCHBASE_USERNAME:-Administrator}
+      - COUCHBASE_PASSWORD=${COUCHBASE_PASSWORD:-password}
+    configs:
+      - source: sgw-config
+        target: /etc/sync_gateway/config.json
+    depends_on:
+      couchbase-edge:
+        condition: service_healthy
+    networks:
+      - baggage-net
+    restart: on-failure
+
+  backend:
+    image: aparupada/resilient_baggage_operations:backend
+    container_name: baggage-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      couchbase-edge:
+        condition: service_healthy
+      couchbase-main:
+        condition: service_healthy
+    networks:
+      - baggage-net
+    restart: on-failure
+
+  frontend:
+    image: aparupada/resilient_baggage_operations:frontend
+    container_name: baggage-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - baggage-net
+
+networks:
+  baggage-net:
+    driver: bridge
+
+volumes:
+  couchbase-edge-data:
+  couchbase-main-data:
+
+configs:
+  sgw-config:
+    content: |
+      {
+        "bootstrap": {
+          "server": "couchbase://couchbase-edge",
+          "username": "$COUCHBASE_USERNAME",
+          "password": "$COUCHBASE_PASSWORD",
+          "server_tls_skip_verify": true,
+          "use_tls_server": false
+        },
+        "api": {
+          "admin_interface": "0.0.0.0:4985",
+          "public_interface": "0.0.0.0:4984",
+          "admin_interface_authentication": false,
+          "metrics_interface_authentication": false
+        },
+        "logging": {
+          "console": {
+            "log_level": "info",
+            "log_keys": ["HTTP", "Replicate"]
+          }
+        }
+      }
