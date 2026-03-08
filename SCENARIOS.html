@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Swedavia Baggage — Test Scenarios Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#f4f6f9;color:#1a2332;line-height:1.5}
+  a{color:#0c5aa6;text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ── Top nav ── */
+  .topnav{background:#0c2340;color:#fff;padding:0 32px;display:flex;align-items:center;gap:20px;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .topnav .logo{font-size:15px;font-weight:700;letter-spacing:.06em;color:#f59e0b;font-family:'IBM Plex Mono',monospace}
+  .topnav .sep{color:#2d4a6b;font-size:18px}
+  .topnav .title{font-size:13px;color:#94a3b8;letter-spacing:.04em}
+  .topnav a.back{margin-left:auto;font-size:12px;color:#94a3b8;border:1px solid #2d4a6b;padding:5px 12px;border-radius:4px;font-family:'IBM Plex Mono',monospace}
+  .topnav a.back:hover{color:#f59e0b;border-color:#f59e0b;text-decoration:none}
+
+  /* ── Amber runway strip ── */
+  .runway{height:4px;background:repeating-linear-gradient(90deg,#f59e0b 0,#f59e0b 40px,transparent 40px,transparent 60px)}
+
+  /* ── Hero ── */
+  .hero{background:#0c2340;color:#fff;padding:40px 48px 36px;border-bottom:3px solid #f59e0b}
+  .hero h1{font-size:28px;font-weight:800;letter-spacing:.02em;margin-bottom:6px}
+  .hero p{font-size:14px;color:#94a3b8;max-width:720px}
+  .badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:3px 10px;border-radius:3px;letter-spacing:.06em}
+  .badge.blue{background:#1e3a5f;color:#60a5fa}
+  .badge.amber{background:#3d2a00;color:#f59e0b}
+  .badge.green{background:#0d2e1a;color:#34d399}
+  .badge.red{background:#2e0d0d;color:#f87171}
+  .badge.purple{background:#2e1a3d;color:#c084fc}
+
+  /* ── TOC ── */
+  .toc-wrap{background:#fff;border-bottom:1px solid #dde3ec;padding:20px 48px}
+  .toc-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin-bottom:12px}
+  .toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
+  .toc-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:5px;font-size:13px;color:#1a2332;background:#f8fafc;cursor:pointer;transition:all .15s}
+  .toc-item:hover{border-color:#0c5aa6;background:#eff6ff}
+  .toc-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#94a3b8;min-width:22px}
+  .toc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+  /* ── Main layout ── */
+  .main{max-width:1200px;margin:0 auto;padding:40px 32px 80px}
+
+  /* ── Scenario card ── */
+  .scenario{background:#fff;border:1px solid #dde3ec;border-radius:10px;margin-bottom:40px;overflow:hidden;scroll-margin-top:72px}
+  .scenario-header{padding:20px 28px;display:flex;align-items:flex-start;gap:16px;border-bottom:1px solid #eef0f5}
+  .scenario-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#94a3b8;margin-top:2px;min-width:28px}
+  .scenario-title{font-size:18px;font-weight:700;margin-bottom:4px}
+  .scenario-desc{font-size:13px;color:#475569;max-width:680px}
+  .scenario-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+
+  .scenario-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  @media(max-width:800px){.scenario-body{grid-template-columns:1fr}}
+  .scenario-steps{padding:24px 28px;border-right:1px solid #eef0f5}
+  .scenario-diagram{padding:24px 20px;display:flex;align-items:center;justify-content:center;background:#f8fafc}
+
+  /* Steps */
+  .steps-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin-bottom:14px}
+  .step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+  .step-num{width:24px;height:24px;border-radius:50%;background:#0c2340;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-family:'IBM Plex Mono',monospace}
+  .step-content{flex:1}
+  .step-label{font-size:13px;font-weight:600;color:#1a2332;margin-bottom:2px}
+  .step-detail{font-size:12px;color:#64748b}
+  .step-code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#f1f5f9;color:#0c2340;padding:2px 6px;border-radius:3px;display:inline-block;margin-top:3px}
+  .step-expect{font-size:11px;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0;padding:3px 8px;border-radius:3px;margin-top:4px;display:inline-block}
+  .step-warn{font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;padding:3px 8px;border-radius:3px;margin-top:4px;display:inline-block}
+
+  /* Outcome box */
+  .outcome{margin-top:18px;padding:12px 14px;border-radius:6px;border-left:3px solid #0c5aa6;background:#eff6ff}
+  .outcome-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#0c5aa6;margin-bottom:4px}
+  .outcome-text{font-size:12px;color:#1e3a5f}
+
+  /* Section divider */
+  .section-divider{display:flex;align-items:center;gap:16px;margin:48px 0 20px}
+  .section-divider h2{font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#475569;white-space:nowrap}
+  .section-divider .line{flex:1;height:1px;background:#dde3ec}
+
+  /* Diagram styles */
+  svg text{font-family:'IBM Plex Mono',monospace}
+  .diag-caption{text-align:center;font-size:11px;color:#94a3b8;margin-top:8px;font-family:'IBM Plex Mono',monospace}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="logo">✈ ARN OPS</span>
+  <span class="sep">|</span>
+  <span class="title">TEST SCENARIOS GUIDE</span>
+  <a class="back" href="DEMO_SUMMARY.html">← BACK TO SUMMARY</a>
+</nav>
+<div class="runway"></div>
+
+<div class="hero">
+  <h1>Complete Test Scenarios</h1>
+  <p>Every simulation and operator action available in the Resilient Baggage Operations platform — with step-by-step instructions and flow diagrams for demonstration.</p>
+  <div class="badge-row">
+    <span class="badge blue">13 SCENARIOS</span>
+    <span class="badge amber">SEED · SYNC · CHAOS</span>
+    <span class="badge green">SPLIT-BRAIN · CONFLICT</span>
+    <span class="badge red">IATA COMPLIANCE</span>
+    <span class="badge purple">PASSENGER NO-SHOW</span>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <div class="toc-title">Scenario Index</div>
+  <div class="toc-grid">
+    <a href="#s1" class="toc-item"><span class="toc-num">01</span><span class="toc-dot" style="background:#0c5aa6"></span>Seed Initial Data</a>
+    <a href="#s2" class="toc-item"><span class="toc-num">02</span><span class="toc-dot" style="background:#10b981"></span>Add Bag Manually</a>
+    <a href="#s3" class="toc-item"><span class="toc-num">03</span><span class="toc-dot" style="background:#10b981"></span>Generate Load (Burst)</a>
+    <a href="#s4" class="toc-item"><span class="toc-num">04</span><span class="toc-dot" style="background:#ef4444"></span>Simulate Network Outage</a>
+    <a href="#s5" class="toc-item"><span class="toc-num">05</span><span class="toc-dot" style="background:#10b981"></span>Restore Connection</a>
+    <a href="#s6" class="toc-item"><span class="toc-num">06</span><span class="toc-dot" style="background:#f59e0b"></span>Misroute a Bag</a>
+    <a href="#s7" class="toc-item"><span class="toc-num">07</span><span class="toc-dot" style="background:#ef4444"></span>Flaky Write Mode</a>
+    <a href="#s8" class="toc-item"><span class="toc-num">08</span><span class="toc-dot" style="background:#ef4444"></span>RFID Sensor Blackout</a>
+    <a href="#s9" class="toc-item"><span class="toc-num">09</span><span class="toc-dot" style="background:#ef4444"></span>Inject Corrupt Document</a>
+    <a href="#s10" class="toc-item"><span class="toc-num">10</span><span class="toc-dot" style="background:#ef4444"></span>Write Storm (50 bags)</a>
+    <a href="#s11" class="toc-item"><span class="toc-num">11</span><span class="toc-dot" style="background:#8b5cf6"></span>Flight Actions (Delay/Cancel)</a>
+    <a href="#s12" class="toc-item"><span class="toc-num">12</span><span class="toc-dot" style="background:#ef4444"></span>Split-Brain Conflict</a>
+    <a href="#s13" class="toc-item"><span class="toc-num">13</span><span class="toc-dot" style="background:#f59e0b"></span>Passenger No-Show (IATA)</a>
+  </div>
+</div>
+
+<!-- Quick Reference -->
+<div style="background:#fff;border-bottom:2px solid #e2e8f0;padding:24px 48px">
+  <div class="toc-title" style="margin-bottom:14px">Quick Reference — What each scenario does (plain English)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <tbody>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0c5aa6;white-space:nowrap;min-width:80px">01 SEED</td><td style="padding:7px 10px;color:#475569">Fill the airport system with 5 flights and 20 bags so you have data to work with.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0c5aa6">02 ADD BAG</td><td style="padding:7px 10px;color:#475569">Check in one bag for a passenger on a specific flight, just like a real counter agent would.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0c5aa6">03 GENERATE LOAD</td><td style="padding:7px 10px;color:#475569">Add many bags at once (up to 50) to simulate a busy check-in period.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">04 OUTAGE</td><td style="padding:7px 10px;color:#475569">Cut the link between the airport terminal and the cloud — bags still get processed locally.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#10b981">05 RESTORE</td><td style="padding:7px 10px;color:#475569">Bring the link back — all bags written during the outage automatically sync to the cloud.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#f59e0b">06 MISROUTE</td><td style="padding:7px 10px;color:#475569">Send one bag to the wrong conveyor belt on purpose — see the system catch and alert on the mistake.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">07 FLAKY MODE</td><td style="padding:7px 10px;color:#475569">Make 30% of bag writes randomly fail — like a database having hiccups — and watch the system handle it.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">08 BLACKOUT</td><td style="padding:7px 10px;color:#475569">Turn off all RFID bag scanners for 30 seconds — no tracking data comes in during that window.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">09 CORRUPT DATA</td><td style="padding:7px 10px;color:#475569">Insert a broken bag record with missing and invalid fields — see the system flag it without crashing.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">10 WRITE STORM</td><td style="padding:7px 10px;color:#475569">Flood the system with 50 bags at the same time to prove it handles peak load without breaking.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8b5cf6">11 FLIGHT ACTIONS</td><td style="padding:7px 10px;color:#475569">Delay, cancel, or mark a flight arrived — and watch the system automatically reroute or hold its bags.</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444">12 SPLIT-BRAIN</td><td style="padding:7px 10px;color:#475569">Cloud cancels a flight while the terminal is offline — when reconnected a human must decide what to do with the bags.</td></tr>
+      <tr><td style="padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#f59e0b">13 NO-SHOW</td><td style="padding:7px 10px;color:#475569">Mark a passenger as not boarded — the system instantly puts their bags on hold as required by IATA security rules.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION: BASELINE                          -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-divider"><div class="line"></div><h2>Baseline Operations</h2><div class="line"></div></div>
+
+<!-- S1: SEED -->
+<div class="scenario" id="s1">
+  <div class="scenario-header">
+    <div class="scenario-num">01</div>
+    <div>
+      <div class="scenario-title">Seed Initial Data</div>
+      <div class="scenario-desc">Populate the Edge database with 5 realistic SAS flights and 20 passenger bags with matching passenger records. This is the starting point for every demo.</div>
+      <div class="scenario-tags">
+        <span class="badge blue">BASELINE</span>
+        <span class="badge green">XDCR SYNC</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Open Simulation Controls</div><div class="step-detail">Click the slider icon on the left edge of the screen to open the control drawer.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Click SEED DATA</div><div class="step-detail">The large blue button at the top of the drawer.</div><div class="step-code">POST /simulate/seed</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Watch the event log</div><div class="step-detail">Log shows: SEEDED 5 flights + 20 bags on Edge [SYNCING to Main]</div><div class="step-expect">✓ SEEDED message appears in cyan</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Verify CouchbaseStats panel</div><div class="step-detail">Top panel shows: Edge=30, Main=30, status IN SYNC (green).</div><div class="step-expect">✓ Both nodes show equal document count</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Check Baggage Hall tab</div><div class="step-detail">20 bags visible across flights SK101–SK505 with statuses check_in / in_transit / loaded.</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">Edge DB: 30 docs (5 flights + 20 bags + 5 routing rules). XDCR replicates all to Main within ~2s. BaggageTable populates with bags across all 5 flights.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="280" viewBox="0 0 300 280">
+          <!-- Operator -->
+          <rect x="110" y="10" width="80" height="32" rx="5" fill="#0c2340" stroke="#1e3a5f" stroke-width="1.5"/>
+          <text x="150" y="30" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">OPERATOR</text>
+          <!-- Arrow down -->
+          <line x1="150" y1="42" x2="150" y2="70" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,68 155,68 150,76" fill="#475569"/>
+          <!-- Seed button -->
+          <rect x="100" y="76" width="100" height="28" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="150" y="93" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">SEED DATA</text>
+          <!-- Arrow to edge -->
+          <line x1="150" y1="104" x2="150" y2="132" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,130 155,130 150,138" fill="#475569"/>
+          <!-- Edge Couchbase -->
+          <rect x="60" y="138" width="180" height="36" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="150" y="153" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">EDGE COUCHBASE</text>
+          <text x="150" y="166" text-anchor="middle" fill="#6ee7b7" font-size="8">5 flights · 20 bags · 20 PAX</text>
+          <!-- XDCR arrow -->
+          <line x1="150" y1="174" x2="150" y2="202" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,2"/>
+          <polygon points="145,200 155,200 150,208" fill="#f59e0b"/>
+          <text x="165" y="194" fill="#f59e0b" font-size="8">XDCR</text>
+          <!-- Main Couchbase -->
+          <rect x="60" y="208" width="180" height="36" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="150" y="223" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">MAIN COUCHBASE</text>
+          <text x="150" y="236" text-anchor="middle" fill="#6ee7b7" font-size="8">30 docs — IN SYNC ✓</text>
+          <!-- Labels left -->
+          <text x="10" y="156" fill="#94a3b8" font-size="8">Port</text>
+          <text x="10" y="166" fill="#94a3b8" font-size="8">8091</text>
+          <text x="10" y="226" fill="#94a3b8" font-size="8">Port</text>
+          <text x="10" y="236" fill="#94a3b8" font-size="8">8092</text>
+        </svg>
+        <div class="diag-caption">Edge writes → XDCR → Main replication</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S2: ADD BAG -->
+<div class="scenario" id="s2">
+  <div class="scenario-header">
+    <div class="scenario-num">02</div>
+    <div>
+      <div class="scenario-title">Add Bag Manually</div>
+      <div class="scenario-desc">Register a single passenger bag for a specific flight. Demonstrates real-time check-in capability and live document creation with XDCR propagation.</div>
+      <div class="scenario-tags">
+        <span class="badge blue">OPERATOR ACTION</span>
+        <span class="badge green">REAL-TIME SYNC</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Open Simulation Controls drawer</div><div class="step-detail">Scroll down to the "Add Bag" section at the bottom of the drawer.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Enter passenger name</div><div class="step-detail">Type a name, e.g. "Erik Johansson". Select a flight from the dropdown.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Set weight and count</div><div class="step-detail">Default weight 12.5 kg, count ×1. For bulk, increase count up to 50.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Click ADD</div><div class="step-code">POST /bags</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Verify in BaggageTable</div><div class="step-detail">New bag appears immediately. Edge count increases by 1.</div><div class="step-expect">✓ BAG-XXXXXXXX row visible with status check_in</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">Bag created on Edge with status=check_in, assigned to correct belt via routing rules. Replicates to Main in ~2s. If offline, sync_pending=true until RESTORE.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="260" viewBox="0 0 300 260">
+          <!-- Form -->
+          <rect x="60" y="10" width="180" height="60" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="150" y="28" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">ADD BAG FORM</text>
+          <text x="150" y="42" text-anchor="middle" fill="#94a3b8" font-size="8">Passenger · Flight · Weight</text>
+          <text x="150" y="56" text-anchor="middle" fill="#94a3b8" font-size="8">POST /bags</text>
+          <!-- Arrow -->
+          <line x1="150" y1="70" x2="150" y2="95" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,93 155,93 150,101" fill="#475569"/>
+          <!-- Routing -->
+          <rect x="70" y="101" width="160" height="30" rx="5" fill="#3d2a00" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="150" y="118" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">BELT LOOKUP (routing_rule)</text>
+          <!-- Arrow -->
+          <line x1="150" y1="131" x2="150" y2="156" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,154 155,154 150,162" fill="#475569"/>
+          <!-- Bag doc -->
+          <rect x="55" y="162" width="190" height="48" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="150" y="179" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">BAG DOCUMENT CREATED</text>
+          <text x="150" y="192" text-anchor="middle" fill="#6ee7b7" font-size="8">status: check_in · belt: A1</text>
+          <text x="150" y="204" text-anchor="middle" fill="#6ee7b7" font-size="8">sync_pending: false</text>
+          <!-- XDCR -->
+          <line x1="150" y1="210" x2="150" y2="230" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,228 155,228 150,236" fill="#f59e0b"/>
+          <text x="165" y="224" fill="#f59e0b" font-size="8">XDCR →</text>
+          <text x="150" y="248" text-anchor="middle" fill="#94a3b8" font-size="9">Replicated to Main ✓</text>
+        </svg>
+        <div class="diag-caption">API → routing lookup → Edge write → XDCR</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S3: GENERATE LOAD -->
+<div class="scenario" id="s3">
+  <div class="scenario-header">
+    <div class="scenario-num">03</div>
+    <div>
+      <div class="scenario-title">Generate Load (Burst Insertion)</div>
+      <div class="scenario-desc">Rapidly insert N bags (1–50) with matching passenger records across all active flights. Used to demonstrate throughput, stress-test, and fill the departure board.</div>
+      <div class="scenario-tags">
+        <span class="badge blue">LOAD TEST</span>
+        <span class="badge green">THROUGHPUT</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Open Simulation Controls</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Find "Generate Load" section</div><div class="step-detail">Set count (default 10, max 50). Bags distributed across all active flights automatically.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Click GENERATE</div><div class="step-code">POST /simulate/load?count=10</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Watch doc counts rise</div><div class="step-detail">CouchbaseStats shows Edge count jumping. XDCR syncs to Main.</div><div class="step-expect">✓ GENERATED N bags — log entry in green</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Check Passenger Board</div><div class="step-detail">10 new passenger records also created alongside bags.</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">N bag docs + N passenger docs inserted on Edge. Swedish passenger names from predefined list. Bags use random realistic weights (7–28 kg) and are assigned to correct belts.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="260" viewBox="0 0 300 260">
+          <rect x="90" y="10" width="120" height="28" rx="5" fill="#0c2340" stroke="#1e3a5f"/>
+          <text x="150" y="28" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">GENERATE LOAD (×10)</text>
+          <!-- Loop indicator -->
+          <ellipse cx="150" cy="80" rx="50" ry="22" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="150" y="75" text-anchor="middle" fill="#60a5fa" font-size="9">for each bag</text>
+          <text x="150" y="88" text-anchor="middle" fill="#94a3b8" font-size="8">random flight + passenger</text>
+          <line x1="150" y1="38" x2="150" y2="58" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,56 155,56 150,64" fill="#475569"/>
+          <line x1="150" y1="102" x2="150" y2="120" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,118 155,118 150,126" fill="#475569"/>
+          <!-- Dual write -->
+          <line x1="120" y1="126" x2="80" y2="152" stroke="#34d399" stroke-width="1.5"/>
+          <line x1="180" y1="126" x2="220" y2="152" stroke="#c084fc" stroke-width="1.5"/>
+          <rect x="30" y="152" width="100" height="30" rx="5" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="80" y="166" text-anchor="middle" fill="#34d399" font-size="8" font-weight="600">BAG doc</text>
+          <text x="80" y="177" text-anchor="middle" fill="#6ee7b7" font-size="7">status: check_in</text>
+          <rect x="170" y="152" width="100" height="30" rx="5" fill="#2e1a3d" stroke="#c084fc"/>
+          <text x="220" y="166" text-anchor="middle" fill="#c084fc" font-size="8" font-weight="600">PAX doc</text>
+          <text x="220" y="177" text-anchor="middle" fill="#d8b4fe" font-size="7">status: checked_in</text>
+          <!-- XDCR -->
+          <line x1="80" y1="182" x2="80" y2="208" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <line x1="220" y1="182" x2="220" y2="208" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="60" y="208" width="180" height="28" rx="5" fill="#3d2a00" stroke="#f59e0b"/>
+          <text x="150" y="226" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">XDCR → Main (both docs)</text>
+        </svg>
+        <div class="diag-caption">Each bag inserts a BAG doc + PAX doc</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION: SYNC & OUTAGE                     -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-divider"><div class="line"></div><h2>Sync & Outage Simulation</h2><div class="line"></div></div>
+
+<!-- S4: SIMULATE OUTAGE -->
+<div class="scenario" id="s4">
+  <div class="scenario-header">
+    <div class="scenario-num">04</div>
+    <div>
+      <div class="scenario-title">Simulate Network Outage</div>
+      <div class="scenario-desc">Pause XDCR replication between Edge and Main — simulating a WAN link failure between the airport terminal and cloud data centre. Edge continues operating independently.</div>
+      <div class="scenario-tags">
+        <span class="badge red">OUTAGE</span>
+        <span class="badge amber">XDCR PAUSE</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Click CLOUD SYNC toggle (ON → OFF)</div><div class="step-code">POST /simulate/offline</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Observe CouchbaseStats panel</div><div class="step-detail">Sync toggle turns RED. Status changes to OUT OF SYNC.</div><div class="step-expect">✓ "CLOUD SYNC OFF" label in red</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Add a bag (optional)</div><div class="step-detail">Add a bag while offline. It shows sync_pending=true.</div><div class="step-warn">⚠ New bags show PENDING — not yet on Main</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Verify divergence</div><div class="step-detail">Edge count rises; Main count stays the same. Document counts diverge.</div><div class="step-expect">✓ Edge=31, Main=30 — OUT OF SYNC</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">XDCR replication paused via Couchbase REST API. Edge writes continue at full speed. Main stays frozen at last-synced state. CouchbaseStats shows OUT OF SYNC in amber/red.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="280" viewBox="0 0 300 280">
+          <!-- Edge -->
+          <rect x="30" y="20" width="110" height="50" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="2"/>
+          <text x="85" y="40" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">EDGE</text>
+          <text x="85" y="54" text-anchor="middle" fill="#6ee7b7" font-size="8">docs: 31</text>
+          <text x="85" y="64" text-anchor="middle" fill="#6ee7b7" font-size="7">✓ WRITING</text>
+          <!-- Broken link -->
+          <line x1="140" y1="45" x2="165" y2="45" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,2"/>
+          <text x="153" y="38" text-anchor="middle" fill="#ef4444" font-size="9">✕</text>
+          <rect x="165" y="30" width="70" height="22" rx="4" fill="#2e0d0d" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="200" y="44" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="600">XDCR OFF</text>
+          <!-- Main -->
+          <rect x="160" y="20" width="110" height="50" rx="6" fill="#1a1f2e" stroke="#475569" stroke-width="1.5"/>
+          <text x="215" y="40" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600">MAIN</text>
+          <text x="215" y="54" text-anchor="middle" fill="#64748b" font-size="8">docs: 30</text>
+          <text x="215" y="64" text-anchor="middle" fill="#64748b" font-size="7">FROZEN</text>
+          <!-- Status panel -->
+          <rect x="60" y="100" width="180" height="50" rx="6" fill="#3d2a00" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="150" y="118" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="700">⚠ OUT OF SYNC</text>
+          <text x="150" y="133" text-anchor="middle" fill="#fde68a" font-size="8">Edge=31  Main=30</text>
+          <text x="150" y="145" text-anchor="middle" fill="#fde68a" font-size="7">Diverged: 1 doc</text>
+          <!-- New writes -->
+          <rect x="30" y="175" width="110" height="40" rx="5" fill="#1a1f2e" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="85" y="192" text-anchor="middle" fill="#60a5fa" font-size="8" font-weight="600">NEW WRITES</text>
+          <text x="85" y="205" text-anchor="middle" fill="#94a3b8" font-size="7">sync_pending: true</text>
+          <line x1="85" y1="70" x2="85" y2="175" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,3"/>
+          <!-- Pending queue -->
+          <rect x="60" y="235" width="180" height="34" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="150" y="252" text-anchor="middle" fill="#60a5fa" font-size="8">Pending queue builds up</text>
+          <text x="150" y="264" text-anchor="middle" fill="#94a3b8" font-size="7">Will flush on RESTORE →</text>
+        </svg>
+        <div class="diag-caption">XDCR paused — Edge writes, Main frozen</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S5: RESTORE -->
+<div class="scenario" id="s5">
+  <div class="scenario-header">
+    <div class="scenario-num">05</div>
+    <div>
+      <div class="scenario-title">Restore Connection</div>
+      <div class="scenario-desc">Resume XDCR replication. All bags written during the outage synchronise to Main automatically. Demonstrates self-healing resilience.</div>
+      <div class="scenario-tags">
+        <span class="badge green">RESILIENCE</span>
+        <span class="badge blue">AUTO-SYNC</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Prerequisite: Run Scenario 04 first</div><div class="step-detail">System should be offline with diverged doc counts.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Click CLOUD SYNC toggle (OFF → ON)</div><div class="step-code">POST /simulate/online</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Watch CouchbaseStats</div><div class="step-detail">Status briefly shows SYNCING (blue), then IN SYNC (green) once doc counts equalise.</div><div class="step-expect">✓ SYNCING → IN SYNC within 5–10 seconds</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Verify sync_pending flags cleared</div><div class="step-detail">Bags that were offline now show sync_pending=false in BaggageTable.</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">XDCR resumed. All pending docs replicated to Main. Counts equalise: Edge=Main. No data lost — this is Scenario 04 Case 1 (clean recovery, no conflict).</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="260" viewBox="0 0 300 260">
+          <!-- Edge -->
+          <rect x="30" y="20" width="100" height="46" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="2"/>
+          <text x="80" y="38" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">EDGE</text>
+          <text x="80" y="52" text-anchor="middle" fill="#6ee7b7" font-size="8">docs: 31</text>
+          <!-- XDCR arrow (active) -->
+          <line x1="130" y1="43" x2="170" y2="43" stroke="#f59e0b" stroke-width="2"/>
+          <polygon points="165,38 175,43 165,48" fill="#f59e0b"/>
+          <rect x="120" y="28" width="60" height="18" rx="3" fill="#3d2a00" stroke="#f59e0b"/>
+          <text x="150" y="40" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="700">XDCR ON</text>
+          <!-- Main -->
+          <rect x="170" y="20" width="100" height="46" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="2"/>
+          <text x="220" y="38" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">MAIN</text>
+          <text x="220" y="52" text-anchor="middle" fill="#6ee7b7" font-size="8">docs: 31 ✓</text>
+          <!-- Syncing state -->
+          <rect x="70" y="95" width="80" height="32" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="110" y="113" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="700">SYNCING...</text>
+          <!-- Arrow right -->
+          <line x1="150" y1="111" x2="170" y2="111" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <!-- In sync state -->
+          <rect x="160" y="95" width="80" height="32" rx="5" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="200" y="113" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">IN SYNC ✓</text>
+          <!-- Timeline -->
+          <line x1="60" y1="150" x2="260" y2="150" stroke="#dde3ec" stroke-width="1.5"/>
+          <circle cx="80" cy="150" r="4" fill="#ef4444"/>
+          <text x="80" y="165" text-anchor="middle" fill="#ef4444" font-size="8">RESTORE</text>
+          <circle cx="150" cy="150" r="4" fill="#3b82f6"/>
+          <text x="150" y="165" text-anchor="middle" fill="#3b82f6" font-size="8">SYNCING</text>
+          <circle cx="230" cy="150" r="4" fill="#34d399"/>
+          <text x="230" y="165" text-anchor="middle" fill="#34d399" font-size="8">IN SYNC</text>
+          <!-- Pending cleared -->
+          <rect x="70" y="185" width="160" height="30" rx="5" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="150" y="203" text-anchor="middle" fill="#34d399" font-size="8">All pending docs flushed ✓</text>
+          <!-- Zero data loss -->
+          <rect x="80" y="230" width="140" height="24" rx="4" fill="#eff6ff" stroke="#3b82f6"/>
+          <text x="150" y="245" text-anchor="middle" fill="#0c5aa6" font-size="9" font-weight="700">ZERO DATA LOSS</text>
+        </svg>
+        <div class="diag-caption">XDCR resumes → counts equalise → IN SYNC</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION: CHAOS ENGINEERING                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-divider"><div class="line"></div><h2>Chaos Engineering</h2><div class="line"></div></div>
+
+<!-- S6: MISROUTE -->
+<div class="scenario" id="s6">
+  <div class="scenario-header">
+    <div class="scenario-num">06</div>
+    <div>
+      <div class="scenario-title">Misroute a Bag</div>
+      <div class="scenario-desc">Deliberately assign one active bag to the wrong conveyor belt — simulating a sorting system fault or incorrect gate assignment. Tests real-time anomaly detection.</div>
+      <div class="scenario-tags">
+        <span class="badge amber">ANOMALY</span>
+        <span class="badge red">MISROUTE</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Ensure bags are seeded</div><div class="step-detail">At least one active bag must exist (status not delivered).</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Click MISROUTE BAG in controls</div><div class="step-code">POST /simulate/misroute</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Read the event log</div><div class="step-detail">Shows: BAG-XXXXXXXX rerouted A1 → B2 (wrong belt)</div><div class="step-warn">⚠ MISROUTED appears in red in log</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Check AlertRail (right panel)</div><div class="step-detail">Alert fires: MISROUTED BAG detected. Belt mismatch visible in BaggageTable.</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Observe Workstation View</div><div class="step-detail">WS-2 CONVEYOR column flags the bag with incorrect belt assignment.</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">One random bag gets destination_belt changed to a wrong belt. AlertRail fires HIGH severity alert. Auditor log records the misroute event. Belt Heatmap shows unexpected belt traffic.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="260" viewBox="0 0 300 260">
+          <!-- Bag -->
+          <rect x="90" y="10" width="120" height="30" rx="5" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="150" y="29" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">BAG-A8F3  Flight SK101</text>
+          <!-- Normal route -->
+          <line x1="150" y1="40" x2="150" y2="68" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="60" y="68" width="90" height="26" rx="5" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="105" y="84" text-anchor="middle" fill="#34d399" font-size="9">Correct: Belt A1</text>
+          <!-- Wrong route (solid red) -->
+          <line x1="150" y1="40" x2="220" y2="68" stroke="#ef4444" stroke-width="2"/>
+          <rect x="175" y="68" width="90" height="26" rx="5" fill="#2e0d0d" stroke="#ef4444" stroke-width="2"/>
+          <text x="220" y="84" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">WRONG: Belt B2</text>
+          <!-- X mark -->
+          <text x="212" y="58" fill="#ef4444" font-size="14" font-weight="700">✕</text>
+          <!-- Alert -->
+          <rect x="55" y="120" width="190" height="38" rx="6" fill="#2e0d0d" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="150" y="136" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">⚡ HIGH ALERT: MISROUTED BAG</text>
+          <text x="150" y="151" text-anchor="middle" fill="#fca5a5" font-size="8">Belt mismatch detected — A1 vs B2</text>
+          <!-- Audit -->
+          <rect x="80" y="178" width="140" height="28" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="150" y="195" text-anchor="middle" fill="#60a5fa" font-size="8">Audit log: sim_misroute</text>
+          <!-- Workstation -->
+          <rect x="80" y="220" width="140" height="28" rx="5" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="150" y="237" text-anchor="middle" fill="#60a5fa" font-size="8">WS-2 CONVEYOR flags bag</text>
+        </svg>
+        <div class="diag-caption">Belt mismatch → alert → audit log</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S7: FLAKY MODE -->
+<div class="scenario" id="s7">
+  <div class="scenario-header">
+    <div class="scenario-num">07</div>
+    <div>
+      <div class="scenario-title">Flaky Write Mode</div>
+      <div class="scenario-desc">Toggle a mode where ~30% of bag write operations randomly fail — simulating intermittent database or network instability without a full outage.</div>
+      <div class="scenario-tags">
+        <span class="badge red">CHAOS</span>
+        <span class="badge amber">INTERMITTENT</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Click FLAKY MODE in Chaos panel</div><div class="step-code">POST /simulate/flaky</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Try adding several bags</div><div class="step-detail">Use Generate Load with count=10. Some will succeed, some will fail randomly.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Observe log errors</div><div class="step-detail">ERROR entries appear for failed writes. Successful writes still synced.</div><div class="step-warn">⚠ ~30% writes fail randomly</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Toggle OFF</div><div class="step-detail">Click FLAKY MODE again to disable. All writes resume normally.</div><div class="step-code">POST /simulate/flaky (toggle)</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">Flaky mode is a toggle. When ON, backend randomly raises a write error ~30% of the time. AlertRail may surface error patterns. Shows the system's fault tolerance.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="240" viewBox="0 0 300 240">
+          <rect x="90" y="10" width="120" height="28" rx="5" fill="#0c2340" stroke="#1e3a5f"/>
+          <text x="150" y="27" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">WRITE REQUEST ×10</text>
+          <line x1="150" y1="38" x2="150" y2="60" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,58 155,58 150,66" fill="#475569"/>
+          <!-- Flaky gate -->
+          <rect x="80" y="66" width="140" height="30" rx="5" fill="#3d2a00" stroke="#f59e0b" stroke-width="2"/>
+          <text x="150" y="83" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="700">FLAKY GATE (30% fail)</text>
+          <!-- Success -->
+          <line x1="110" y1="96" x2="80" y2="130" stroke="#34d399" stroke-width="2"/>
+          <rect x="20" y="130" width="120" height="30" rx="5" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="80" y="148" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">SUCCESS (70%)</text>
+          <!-- Fail -->
+          <line x1="190" y1="96" x2="220" y2="130" stroke="#ef4444" stroke-width="2"/>
+          <rect x="160" y="130" width="120" height="30" rx="5" fill="#2e0d0d" stroke="#ef4444"/>
+          <text x="220" y="148" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">ERROR (30%)</text>
+          <!-- Toggle -->
+          <rect x="80" y="190" width="140" height="36" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="150" y="206" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">TOGGLE: ON / OFF</text>
+          <text x="150" y="220" text-anchor="middle" fill="#94a3b8" font-size="8">Stateful — persists until toggled</text>
+        </svg>
+        <div class="diag-caption">~30% of writes randomly rejected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S8: SENSOR BLACKOUT -->
+<div class="scenario" id="s8">
+  <div class="scenario-header">
+    <div class="scenario-num">08</div>
+    <div>
+      <div class="scenario-title">RFID Sensor Blackout</div>
+      <div class="scenario-desc">Suppress all RFID baggage scanner feeds for N seconds (5–120). Simulates hardware failure of conveyor scanners — bags stop being tracked during the blackout period.</div>
+      <div class="scenario-tags">
+        <span class="badge red">HARDWARE FAULT</span>
+        <span class="badge amber">RFID SENSORS</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Set blackout duration (default 30s)</div><div class="step-detail">Enter seconds in the Chaos panel input (5–120).</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Click SENSOR BLACKOUT</div><div class="step-code">POST /simulate/blackout?duration=30</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Watch IoT/digital twin panel</div><div class="step-detail">Live RFID feed goes dark. Bag tracking events stop updating.</div><div class="step-warn">⚠ Bags no longer tracked for 30s</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Wait for blackout to expire</div><div class="step-detail">After duration, feeds resume automatically.</div><div class="step-expect">✓ RFID feed resumes after countdown</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">IoT simulation layer stops emitting scanner events. AlertRail may surface RFID OFFLINE alert. Audit log records sim_chaos event. After duration, sensor feeds resume automatically.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="250" viewBox="0 0 300 250">
+          <!-- Scanners -->
+          <rect x="20" y="20" width="60" height="28" rx="4" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="50" y="35" text-anchor="middle" fill="#34d399" font-size="8" font-weight="600">SCANNER A</text>
+          <rect x="120" y="20" width="60" height="28" rx="4" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="150" y="35" text-anchor="middle" fill="#34d399" font-size="8" font-weight="600">SCANNER B</text>
+          <rect x="220" y="20" width="60" height="28" rx="4" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="250" y="35" text-anchor="middle" fill="#34d399" font-size="8" font-weight="600">SCANNER C</text>
+          <!-- Blackout overlay -->
+          <rect x="10" y="15" width="280" height="42" rx="6" fill="#2e0d0d" fill-opacity="0.8" stroke="#ef4444" stroke-width="2" stroke-dasharray="6,3"/>
+          <text x="150" y="38" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="700">BLACKOUT — RFID OFFLINE</text>
+          <!-- Timer -->
+          <rect x="110" y="80" width="80" height="36" rx="5" fill="#2e0d0d" stroke="#ef4444"/>
+          <text x="150" y="96" text-anchor="middle" fill="#ef4444" font-size="9">Countdown</text>
+          <text x="150" y="110" text-anchor="middle" fill="#fca5a5" font-size="12" font-weight="700" font-family="'IBM Plex Mono'">30s</text>
+          <!-- Gap in data -->
+          <rect x="40" y="138" width="220" height="28" rx="5" fill="#1a1f2e" stroke="#475569" stroke-width="1.5"/>
+          <text x="150" y="155" text-anchor="middle" fill="#64748b" font-size="8">No tracking events during blackout</text>
+          <!-- Resume -->
+          <line x1="150" y1="166" x2="150" y2="186" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <polygon points="145,184 155,184 150,192" fill="#34d399"/>
+          <rect x="80" y="192" width="140" height="28" rx="5" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="150" y="209" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">Auto-Resume ✓</text>
+          <!-- Audit -->
+          <text x="150" y="238" text-anchor="middle" fill="#94a3b8" font-size="8">Audit: sim_chaos / sensor_blackout</text>
+        </svg>
+        <div class="diag-caption">RFID feeds suppressed for set duration</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S9: CORRUPT DATA -->
+<div class="scenario" id="s9">
+  <div class="scenario-header">
+    <div class="scenario-num">09</div>
+    <div>
+      <div class="scenario-title">Inject Corrupt Document</div>
+      <div class="scenario-desc">Insert a deliberately malformed bag document — null flight_id, invalid status, negative weight, non-existent belt. Tests data validation, alerting, and display robustness.</div>
+      <div class="scenario-tags">
+        <span class="badge red">DATA QUALITY</span>
+        <span class="badge amber">VALIDATION TEST</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Click CORRUPT DATA in Chaos panel</div><div class="step-code">POST /simulate/corrupt</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Check BaggageTable</div><div class="step-detail">A row with BAG-CORRUPT-XXXXXX appears with suspicious values: flight=null, weight=−99.9, belt=ZZ.</div><div class="step-warn">⚠ Row highlighted as anomalous</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Check AlertRail</div><div class="step-detail">CORRUPT DOCUMENT alert fires at HIGH severity.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Review audit log</div><div class="step-detail">Entry shows sim_chaos with details of corrupt fields.</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">Corrupt doc has _corrupt:true flag, flight_id:null, status:"UNKNOWN", weight:-99.9. System ingests it without crashing (resilience), surfaces it in alerts. Demonstrates anomaly detection.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="240" viewBox="0 0 300 240">
+          <rect x="70" y="10" width="160" height="28" rx="5" fill="#2e0d0d" stroke="#ef4444" stroke-width="2"/>
+          <text x="150" y="28" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">CORRUPT DOC INJECTED</text>
+          <!-- Doc fields -->
+          <rect x="40" y="58" width="220" height="90" rx="6" fill="#1a1f2e" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="70" y="76" fill="#64748b" font-size="8">flight_id:</text><text x="130" y="76" fill="#ef4444" font-size="8">null ✕</text>
+          <text x="70" y="92" fill="#64748b" font-size="8">status:</text><text x="130" y="92" fill="#ef4444" font-size="8">"UNKNOWN" ✕</text>
+          <text x="70" y="108" fill="#64748b" font-size="8">weight_kg:</text><text x="130" y="108" fill="#ef4444" font-size="8">-99.9 ✕</text>
+          <text x="70" y="124" fill="#64748b" font-size="8">belt:</text><text x="130" y="124" fill="#ef4444" font-size="8">"ZZ" (invalid) ✕</text>
+          <text x="70" y="140" fill="#64748b" font-size="8">timestamp:</text><text x="130" y="140" fill="#ef4444" font-size="8">"INVALID_TS" ✕</text>
+          <!-- Alert -->
+          <rect x="50" y="168" width="200" height="30" rx="5" fill="#2e0d0d" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="150" y="186" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">⚡ HIGH: CORRUPT DOCUMENT</text>
+          <!-- No crash -->
+          <rect x="80" y="212" width="140" height="22" rx="4" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="150" y="226" text-anchor="middle" fill="#34d399" font-size="8">System stays running ✓</text>
+        </svg>
+        <div class="diag-caption">Invalid fields → alert → no crash</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S10: WRITE STORM -->
+<div class="scenario" id="s10">
+  <div class="scenario-header">
+    <div class="scenario-num">10</div>
+    <div>
+      <div class="scenario-title">Write Storm (50 Bags)</div>
+      <div class="scenario-desc">Burst-insert 50 bags as fast as possible to stress-test write throughput and XDCR replication capacity. Alias for Generate Load with count=50.</div>
+      <div class="scenario-tags">
+        <span class="badge red">STRESS TEST</span>
+        <span class="badge blue">THROUGHPUT</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Click WRITE STORM in Chaos panel</div><div class="step-code">POST /simulate/storm</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Watch CouchbaseStats</div><div class="step-detail">Edge count jumps by 50 instantly. Main count lags and catches up via XDCR.</div><div class="step-expect">✓ GENERATED 50 bags in log</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Observe BaggageTable loading</div><div class="step-detail">Entire table refreshes with 50 new rows across all flights.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Monitor sync time</div><div class="step-detail">How long does it take Main to catch up? Typically 5–15s for 50 docs.</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">50 bag + 50 passenger docs inserted. XDCR queue fills briefly, drains within seconds. IN SYNC restored quickly. Demonstrates horizontal throughput capability.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="230" viewBox="0 0 300 230">
+          <!-- Storm icon -->
+          <rect x="90" y="10" width="120" height="28" rx="5" fill="#2e0d0d" stroke="#ef4444" stroke-width="2"/>
+          <text x="150" y="27" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">⚡ WRITE STORM ×50</text>
+          <!-- Bars -->
+          <line x1="150" y1="38" x2="150" y2="58" stroke="#ef4444" stroke-width="2"/>
+          <!-- Multiple write lines burst -->
+          <line x1="90" y1="58" x2="60" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <line x1="110" y1="58" x2="100" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <line x1="130" y1="58" x2="130" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <line x1="150" y1="58" x2="150" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <line x1="170" y1="58" x2="170" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <line x1="190" y1="58" x2="200" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <line x1="210" y1="58" x2="240" y2="85" stroke="#f59e0b" stroke-width="1.5"/>
+          <!-- Edge -->
+          <rect x="40" y="85" width="220" height="32" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="2"/>
+          <text x="150" y="102" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">EDGE — 50 docs in &lt;1s</text>
+          <!-- XDCR queue -->
+          <line x1="150" y1="117" x2="150" y2="140" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="70" y="140" width="160" height="28" rx="5" fill="#3d2a00" stroke="#f59e0b"/>
+          <text x="150" y="158" text-anchor="middle" fill="#f59e0b" font-size="8">XDCR queue draining...</text>
+          <!-- Main catches up -->
+          <line x1="150" y1="168" x2="150" y2="188" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="70" y="188" width="160" height="28" rx="5" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="150" y="206" text-anchor="middle" fill="#34d399" font-size="8">Main catches up — IN SYNC ✓</text>
+        </svg>
+        <div class="diag-caption">50 docs burst → XDCR queue → Main syncs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION: FLIGHT OPS                        -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-divider"><div class="line"></div><h2>Flight Operations</h2><div class="line"></div></div>
+
+<!-- S11: FLIGHT ACTIONS -->
+<div class="scenario" id="s11">
+  <div class="scenario-header">
+    <div class="scenario-num">11</div>
+    <div>
+      <div class="scenario-title">Flight Actions — Delay, Cancel, Arrive</div>
+      <div class="scenario-desc">Operators can update flight status and trigger automatic cascade effects on registered baggage — rerouting, on-hold, and offload to Reclaim (RCL) based on airline policy rules.</div>
+      <div class="scenario-tags">
+        <span class="badge purple">FLIGHT OPS</span>
+        <span class="badge amber">CASCADE RULES</span>
+        <span class="badge red">CANCEL</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Open Flight Actions in controls drawer</div><div class="step-detail">Select a flight from the dropdown (e.g. SK202 — Dubai).</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Option A — Delay Flight</div><div class="step-detail">Click DELAY FLT → confirm. Status → delayed. Bags flagged.</div><div class="step-code">PUT /flights/SK202/status  {status: "delayed"}</div><div class="step-expect">✓ FlightBoard shows DELAYED in amber</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Option B — Cancel Flight</div><div class="step-detail">Click CANCEL FLT → confirm. Policy engine runs: bags rerouted to alternate, some on hold, others to RCL.</div><div class="step-code">POST /flights/SK202/cancel</div><div class="step-warn">⚠ Irreversible — all bags cascade</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Option C — Mark Arrived (inbound only)</div><div class="step-detail">Inbound flights get ARRIVED button. Sets status=arrived.</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Read cascade result in log</div><div class="step-detail">Shows: "SK202 CANCELLED — 3 rerouted→SK303 · 1 on hold"</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">Cancel triggers automatic bag cascade: bags go to alternate flight if available, else on_hold or offloaded. FlightBoard updates. BaggageTable shows new bag statuses. All changes replicated via XDCR.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="290" viewBox="0 0 300 290">
+          <!-- Flight -->
+          <rect x="90" y="10" width="120" height="28" rx="5" fill="#0c2340" stroke="#3b82f6"/>
+          <text x="150" y="27" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">SK202 — scheduled</text>
+          <!-- Three outcomes -->
+          <line x1="100" y1="38" x2="60" y2="70" stroke="#d29922" stroke-width="1.5"/>
+          <line x1="150" y1="38" x2="150" y2="70" stroke="#ef4444" stroke-width="1.5"/>
+          <line x1="200" y1="38" x2="240" y2="70" stroke="#34d399" stroke-width="1.5"/>
+          <!-- Delay -->
+          <rect x="15" y="70" width="80" height="26" rx="4" fill="#3d2a00" stroke="#d29922"/>
+          <text x="55" y="86" text-anchor="middle" fill="#d29922" font-size="8" font-weight="600">DELAYED</text>
+          <!-- Cancel -->
+          <rect x="110" y="70" width="80" height="26" rx="4" fill="#2e0d0d" stroke="#ef4444"/>
+          <text x="150" y="86" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="600">CANCELLED</text>
+          <!-- Arrived -->
+          <rect x="205" y="70" width="80" height="26" rx="4" fill="#0d2e1a" stroke="#34d399"/>
+          <text x="245" y="86" text-anchor="middle" fill="#34d399" font-size="8" font-weight="600">ARRIVED</text>
+          <!-- Cancel cascade -->
+          <line x1="150" y1="96" x2="150" y2="120" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="60" y="120" width="180" height="28" rx="5" fill="#1a1f2e" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="150" y="137" text-anchor="middle" fill="#f87171" font-size="9">Policy Engine runs cascade</text>
+          <!-- Bags split -->
+          <line x1="100" y1="148" x2="70" y2="175" stroke="#475569" stroke-width="1.5"/>
+          <line x1="150" y1="148" x2="150" y2="175" stroke="#475569" stroke-width="1.5"/>
+          <line x1="200" y1="148" x2="230" y2="175" stroke="#475569" stroke-width="1.5"/>
+          <!-- Outcomes -->
+          <rect x="10" y="175" width="80" height="28" rx="4" fill="#1e3a5f" stroke="#3b82f6"/>
+          <text x="50" y="187" text-anchor="middle" fill="#60a5fa" font-size="7" font-weight="600">Rerouted</text>
+          <text x="50" y="198" text-anchor="middle" fill="#94a3b8" font-size="6">→ SK303</text>
+          <rect x="110" y="175" width="80" height="28" rx="4" fill="#3d2a00" stroke="#f59e0b"/>
+          <text x="150" y="187" text-anchor="middle" fill="#f59e0b" font-size="7" font-weight="600">On Hold</text>
+          <text x="150" y="198" text-anchor="middle" fill="#94a3b8" font-size="6">no alternate</text>
+          <rect x="210" y="175" width="80" height="28" rx="4" fill="#2e0d0d" stroke="#ef4444"/>
+          <text x="250" y="187" text-anchor="middle" fill="#f87171" font-size="7" font-weight="600">Offload RCL</text>
+          <text x="250" y="198" text-anchor="middle" fill="#94a3b8" font-size="6">already loaded</text>
+          <!-- Audit -->
+          <rect x="70" y="226" width="160" height="24" rx="4" fill="#1e3a5f" stroke="#3b82f6"/>
+          <text x="150" y="241" text-anchor="middle" fill="#60a5fa" font-size="8">Audit: flight_cancel</text>
+          <!-- XDCR -->
+          <rect x="80" y="262" width="140" height="22" rx="4" fill="#3d2a00" stroke="#f59e0b"/>
+          <text x="150" y="276" text-anchor="middle" fill="#f59e0b" font-size="8">All changes → XDCR → Main</text>
+        </svg>
+        <div class="diag-caption">Cancel triggers policy cascade on all bags</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION: SPLIT-BRAIN                       -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-divider"><div class="line"></div><h2>Split-Brain Conflict Resolution</h2><div class="line"></div></div>
+
+<!-- S12: SPLIT-BRAIN -->
+<div class="scenario" id="s12">
+  <div class="scenario-header">
+    <div class="scenario-num">12</div>
+    <div>
+      <div class="scenario-title">Split-Brain Conflict — Cloud Cancel vs Edge</div>
+      <div class="scenario-desc">The flagship demo. Cloud Ops Centre cancels a flight while the terminal is offline (XDCR down). When connection restores, a conflict is detected — a human operator must resolve it manually using one of two strategies.</div>
+      <div class="scenario-tags">
+        <span class="badge red">SPLIT-BRAIN</span>
+        <span class="badge purple">HUMAN RESOLUTION</span>
+        <span class="badge amber">CONFLICT DETECTION</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body" style="grid-template-columns:1fr">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+      <div class="scenario-steps" style="border-right:1px solid #eef0f5">
+        <div class="steps-title">Step-by-Step Flow</div>
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Seed data first</div><div class="step-detail">POST /simulate/seed — ensure flights exist.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Take XDCR offline</div><div class="step-detail">Click CLOUD SYNC OFF. Terminal is now isolated.</div><div class="step-code">POST /simulate/offline</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Issue Cloud Cancel</div><div class="step-detail">Select a flight (e.g. SK303). Click CLOUD CANCEL.</div><div class="step-code">POST /conflicts/cloud-cancel  {flight_id: "SK303"}</div><div class="step-warn">⚠ Directive stored — XDCR offline so Edge not updated yet</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Restore connection</div><div class="step-detail">Click CLOUD SYNC ON. XDCR resumes — system now detects conflict.</div><div class="step-code">POST /simulate/online</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Conflict appears in Split-Brain panel</div><div class="step-detail">CONFLICTS tab shows a directive for SK303. Displays: Edge status vs Cloud intent (CANCELLED).</div><div class="step-expect">✓ Conflict card appears with directive ID</div></div></div>
+        <div class="step"><div class="step-num">6A</div><div class="step-content"><div class="step-label">Resolution: ACCEPT CLOUD</div><div class="step-detail">Click ACCEPT CLOUD card → confirms. Flight status → CANCELLED. All bags → ON HOLD for offload.</div><div class="step-code">POST /conflicts/resolve  {action: "accept_cloud"}</div><div class="step-expect">✓ Flight cancelled, bags on hold</div></div></div>
+        <div class="step"><div class="step-num">6B</div><div class="step-content"><div class="step-label">Resolution: MANUAL UPDATE</div><div class="step-detail">Enter belt (e.g. D12). Click MANUAL UPDATE. Flight → CANCELLED. Bags → diverted to belt D12.</div><div class="step-code">POST /conflicts/resolve  {action: "manual_update", divert_belt: "D12"}</div><div class="step-expect">✓ Bags rerouted to D12</div></div></div>
+        <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">Human-in-the-loop conflict resolution. Edge is the source of truth; cloud directive is advisory. Operator chooses strategy. All decisions recorded in conflict history with operator ID and timestamp.</div></div>
+      </div>
+      <div class="scenario-diagram" style="padding:20px">
+        <div style="width:100%">
+          <svg width="340" height="400" viewBox="0 0 340 400">
+            <!-- Phase 1: Offline -->
+            <text x="170" y="18" text-anchor="middle" fill="#475569" font-size="8" font-weight="700" letter-spacing="1">PHASE 1 — XDCR OFFLINE</text>
+            <!-- Edge node -->
+            <rect x="10" y="25" width="100" height="44" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="2"/>
+            <text x="60" y="42" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">EDGE</text>
+            <text x="60" y="55" text-anchor="middle" fill="#6ee7b7" font-size="7">SK303: scheduled</text>
+            <text x="60" y="64" text-anchor="middle" fill="#6ee7b7" font-size="7">bags: active</text>
+            <!-- Cloud ops -->
+            <rect x="230" y="25" width="100" height="44" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/>
+            <text x="280" y="42" text-anchor="middle" fill="#60a5fa" font-size="8" font-weight="700">CLOUD OPS</text>
+            <text x="280" y="55" text-anchor="middle" fill="#93c5fd" font-size="7">directive issued:</text>
+            <text x="280" y="64" text-anchor="middle" fill="#93c5fd" font-size="7">CANCEL SK303</text>
+            <!-- Broken XDCR -->
+            <line x1="110" y1="47" x2="230" y2="47" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>
+            <rect x="138" y="35" width="64" height="18" rx="3" fill="#2e0d0d" stroke="#ef4444"/>
+            <text x="170" y="47" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="700">XDCR OFF ✕</text>
+
+            <!-- Phase 2: Restore -->
+            <text x="170" y="92" text-anchor="middle" fill="#475569" font-size="8" font-weight="700" letter-spacing="1">PHASE 2 — RESTORE + DETECT</text>
+            <!-- XDCR restored arrow -->
+            <line x1="110" y1="110" x2="230" y2="110" stroke="#f59e0b" stroke-width="2"/>
+            <polygon points="225,105 235,110 225,115" fill="#f59e0b"/>
+            <text x="170" y="104" text-anchor="middle" fill="#f59e0b" font-size="8">XDCR ON →</text>
+            <!-- Edge restored -->
+            <rect x="10" y="97" width="100" height="28" rx="5" fill="#0d2e1a" stroke="#34d399"/>
+            <text x="60" y="114" text-anchor="middle" fill="#34d399" font-size="7">SK303: still active</text>
+            <!-- Cloud restored -->
+            <rect x="230" y="97" width="100" height="28" rx="5" fill="#1e3a5f" stroke="#3b82f6"/>
+            <text x="280" y="114" text-anchor="middle" fill="#60a5fa" font-size="7">Directive pending</text>
+            <!-- Conflict detected -->
+            <line x1="170" y1="125" x2="170" y2="145" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <polygon points="165,143 175,143 170,151" fill="#ef4444"/>
+            <rect x="60" y="151" width="220" height="36" rx="6" fill="#2e0d0d" stroke="#ef4444" stroke-width="2"/>
+            <text x="170" y="167" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">⚡ CONFLICT DETECTED</text>
+            <text x="170" y="181" text-anchor="middle" fill="#fca5a5" font-size="8">Edge ≠ Cloud directive for SK303</text>
+
+            <!-- Phase 3: Resolution -->
+            <text x="170" y="208" text-anchor="middle" fill="#475569" font-size="8" font-weight="700" letter-spacing="1">PHASE 3 — HUMAN RESOLUTION</text>
+            <!-- Operator -->
+            <rect x="120" y="215" width="100" height="26" rx="5" fill="#0c2340" stroke="#1e3a5f"/>
+            <text x="170" y="231" text-anchor="middle" fill="#60a5fa" font-size="8" font-weight="600">DUTY MANAGER</text>
+            <!-- Two choices -->
+            <line x1="145" y1="241" x2="90" y2="268" stroke="#475569" stroke-width="1.5"/>
+            <line x1="195" y1="241" x2="250" y2="268" stroke="#475569" stroke-width="1.5"/>
+            <!-- Accept cloud -->
+            <rect x="20" y="268" width="130" height="48" rx="6" fill="#0d2e1a" stroke="#34d399" stroke-width="1.5"/>
+            <text x="85" y="284" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">ACCEPT CLOUD</text>
+            <text x="85" y="297" text-anchor="middle" fill="#6ee7b7" font-size="7">Flight → CANCELLED</text>
+            <text x="85" y="308" text-anchor="middle" fill="#6ee7b7" font-size="7">Bags → ON HOLD</text>
+            <!-- Manual update -->
+            <rect x="190" y="268" width="130" height="48" rx="6" fill="#3d2a00" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="255" y="284" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="700">MANUAL UPDATE</text>
+            <text x="255" y="297" text-anchor="middle" fill="#fde68a" font-size="7">Flight → CANCELLED</text>
+            <text x="255" y="308" text-anchor="middle" fill="#fde68a" font-size="7">Bags → Belt D12</text>
+            <!-- Audit -->
+            <rect x="80" y="336" width="180" height="24" rx="5" fill="#1e3a5f" stroke="#3b82f6"/>
+            <text x="170" y="351" text-anchor="middle" fill="#60a5fa" font-size="8">Conflict history + operator ID saved</text>
+            <!-- XDCR -->
+            <rect x="90" y="372" width="160" height="22" rx="4" fill="#3d2a00" stroke="#f59e0b"/>
+            <text x="170" y="386" text-anchor="middle" fill="#f59e0b" font-size="8">Resolution synced via XDCR → Main</text>
+          </svg>
+          <div class="diag-caption">3-phase split-brain resolution flow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION: IATA COMPLIANCE                   -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-divider"><div class="line"></div><h2>IATA Compliance — Passenger No-Show</h2><div class="line"></div></div>
+
+<!-- S13: PASSENGER NO-SHOW -->
+<div class="scenario" id="s13">
+  <div class="scenario-header">
+    <div class="scenario-num">13</div>
+    <div>
+      <div class="scenario-title">Passenger No-Show (IATA Rule)</div>
+      <div class="scenario-desc">IATA security regulation requires that if a passenger does not board, their registered baggage must be immediately placed on hold and offloaded before departure. This scenario demonstrates automated compliance enforcement.</div>
+      <div class="scenario-tags">
+        <span class="badge red">IATA SECURITY</span>
+        <span class="badge amber">COMPLIANCE</span>
+        <span class="badge purple">PASSENGER OPS</span>
+      </div>
+    </div>
+  </div>
+  <div class="scenario-body">
+    <div class="scenario-steps">
+      <div class="steps-title">Steps</div>
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-label">Go to BAGGAGE HALL tab → Passenger Board</div><div class="step-detail">Passenger Board is above the BaggageTable. Select a flight tab (e.g. SK101).</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-label">Find a passenger with CHECKED IN status</div><div class="step-detail">Grey CHECKED IN badge — passenger has not boarded yet.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-label">Mark passenger as NO SHOW</div><div class="step-detail">Click the NO SHOW button → confirm in the modal. System immediately acts.</div><div class="step-code">POST /passengers/{id}/no-show</div><div class="step-warn">⚠ Triggers immediate bag hold — IATA compliance</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-label">Read the toast notification</div><div class="step-detail">"N bags put on hold for offload"</div><div class="step-expect">✓ Bags status changes to on_hold instantly</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-label">Check AlertRail</div><div class="step-detail">HIGH severity alert: "PASSENGER NO-SHOW — [Name] — bag [ID] on hold for offload"</div></div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-content"><div class="step-label">Optional: Board a passenger first</div><div class="step-detail">Click BOARD → status turns green BOARDED. Boarded passengers cannot be no-showed.</div><div class="step-code">PUT /passengers/{id}/board</div></div></div>
+      <div class="outcome"><div class="outcome-title">Expected Outcome</div><div class="outcome-text">No-show triggers N1QL UPDATE on all active bags for that passenger+flight: status→on_hold, hold_reason=passenger_no_show. AlertRail surfaces HIGH alert. Audit entry recorded. IATA compliance enforced automatically.</div></div>
+    </div>
+    <div class="scenario-diagram">
+      <div>
+        <svg width="300" height="310" viewBox="0 0 300 310">
+          <!-- Passenger -->
+          <rect x="90" y="10" width="120" height="36" rx="6" fill="#2e1a3d" stroke="#c084fc" stroke-width="2"/>
+          <text x="150" y="27" text-anchor="middle" fill="#c084fc" font-size="9" font-weight="700">PASSENGER</text>
+          <text x="150" y="40" text-anchor="middle" fill="#d8b4fe" font-size="8">Erik Johansson — SK101</text>
+          <!-- Gate check -->
+          <line x1="150" y1="46" x2="150" y2="72" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="80" y="72" width="140" height="28" rx="5" fill="#1a1f2e" stroke="#475569" stroke-width="1.5"/>
+          <text x="150" y="89" text-anchor="middle" fill="#94a3b8" font-size="9">Gate Check — Not Boarded</text>
+          <!-- No show trigger -->
+          <line x1="150" y1="100" x2="150" y2="122" stroke="#ef4444" stroke-width="2"/>
+          <polygon points="145,120 155,120 150,128" fill="#ef4444"/>
+          <rect x="75" y="128" width="150" height="28" rx="5" fill="#2e0d0d" stroke="#ef4444" stroke-width="2"/>
+          <text x="150" y="145" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">NO-SHOW DECLARED</text>
+          <!-- Immediate action -->
+          <line x1="150" y1="156" x2="150" y2="176" stroke="#ef4444" stroke-width="2"/>
+          <polygon points="145,174 155,174 150,182" fill="#ef4444"/>
+          <!-- N1QL update -->
+          <rect x="40" y="182" width="220" height="36" rx="6" fill="#1a1f2e" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="150" y="198" text-anchor="middle" fill="#f87171" font-size="8" font-weight="600">N1QL: UPDATE all active bags</text>
+          <text x="150" y="212" text-anchor="middle" fill="#94a3b8" font-size="7">status=on_hold · hold_reason=passenger_no_show</text>
+          <!-- Outcomes -->
+          <line x1="90" y1="218" x2="60" y2="246" stroke="#475569" stroke-width="1.5"/>
+          <line x1="150" y1="218" x2="150" y2="246" stroke="#475569" stroke-width="1.5"/>
+          <line x1="210" y1="218" x2="240" y2="246" stroke="#475569" stroke-width="1.5"/>
+          <rect x="10" y="246" width="80" height="28" rx="4" fill="#2e0d0d" stroke="#ef4444"/>
+          <text x="50" y="258" text-anchor="middle" fill="#f87171" font-size="7" font-weight="600">Bag ON HOLD</text>
+          <text x="50" y="268" text-anchor="middle" fill="#94a3b8" font-size="6">belt=null</text>
+          <rect x="110" y="246" width="80" height="28" rx="4" fill="#2e0d0d" stroke="#ef4444"/>
+          <text x="150" y="258" text-anchor="middle" fill="#f87171" font-size="7" font-weight="600">HIGH ALERT</text>
+          <text x="150" y="268" text-anchor="middle" fill="#94a3b8" font-size="6">AlertRail fires</text>
+          <rect x="210" y="246" width="80" height="28" rx="4" fill="#1e3a5f" stroke="#3b82f6"/>
+          <text x="250" y="258" text-anchor="middle" fill="#60a5fa" font-size="7" font-weight="600">Audit logged</text>
+          <text x="250" y="268" text-anchor="middle" fill="#94a3b8" font-size="6">no_show event</text>
+          <!-- IATA label -->
+          <rect x="70" y="288" width="160" height="20" rx="4" fill="#fffbeb" stroke="#f59e0b"/>
+          <text x="150" y="301" text-anchor="middle" fill="#92400e" font-size="8" font-weight="700">IATA Security Rule — Automated ✓</text>
+        </svg>
+        <div class="diag-caption">No-show → immediate bag hold → alert → audit</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="margin-top:60px;padding:28px;background:#fff;border:1px solid #dde3ec;border-radius:10px;text-align:center">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#94a3b8;letter-spacing:.08em;margin-bottom:8px">STOCKHOLM ARLANDA AIRPORT · TERMINAL OPS · HACKATHON 2026</div>
+  <div style="font-size:12px;color:#475569">
+    Docker Hub: <a href="https://hub.docker.com/r/aparupada/resilient_baggage_operations" target="_blank">aparupada/resilient_baggage_operations</a>
+    &nbsp;·&nbsp;
+    GitHub: <a href="https://github.com/AparupaBanerjee/ResilientBaggageOperationsApp" target="_blank">AparupaBanerjee/ResilientBaggageOperationsApp</a>
+  </div>
+  <div style="margin-top:12px">
+    <a href="DEMO_SUMMARY.html" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0c5aa6;border:1px solid #3b82f6;padding:6px 18px;border-radius:4px">← Back to Summary</a>
+  </div>
+</div>
+
+</div><!-- /main -->
+</body>
+</html>
