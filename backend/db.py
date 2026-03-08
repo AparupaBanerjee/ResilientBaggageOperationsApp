@@ -13,6 +13,7 @@ import time
 import logging
 import threading
 import urllib.parse
+from collections import deque
 from datetime import timedelta
 from typing import Optional
 
@@ -35,11 +36,38 @@ BUCKET_NAME = os.getenv("COUCHBASE_BUCKET", "baggage")
 
 # ─── Global state ─────────────────────────────────────────────────────────────
 is_online: bool = True
+flaky_mode: bool = False        # when True, ~30% of writes randomly fail
 _xdcr_replication_id: Optional[str] = None
+_on_divergence_callback = None  # callable(edge_count, main_count) set by main.py
 
 edge_cluster: Optional[Cluster] = None
 edge_collection = None
 main_cluster: Optional[Cluster] = None
+
+# ─── Throughput tracking ──────────────────────────────────────────────────────
+_bag_write_times: deque = deque()
+_bag_write_lock = threading.Lock()
+
+
+def set_divergence_callback(fn) -> None:
+    """Register a callback invoked when edge/main doc counts diverge during sync."""
+    global _on_divergence_callback
+    _on_divergence_callback = fn
+
+
+def record_bag_write() -> None:
+    """Record a bag write timestamp for throughput calculation."""
+    with _bag_write_lock:
+        _bag_write_times.append(time.time())
+
+
+def get_throughput_per_min() -> int:
+    """Return number of bags written in the last 60 seconds."""
+    cutoff = time.time() - 60.0
+    with _bag_write_lock:
+        while _bag_write_times and _bag_write_times[0] < cutoff:
+            _bag_write_times.popleft()
+        return len(_bag_write_times)
 
 
 # ─── Connection helpers ───────────────────────────────────────────────────────
@@ -99,6 +127,28 @@ def get_edge_doc_count() -> int:
 
 def get_main_doc_count() -> int:
     return _rest_doc_count(MAIN_HOST, MAIN_PORT)
+
+
+def _n1ql_bag_count(cluster) -> int:
+    if cluster is None:
+        return 0
+    try:
+        result = cluster.query(
+            f"SELECT RAW COUNT(*) FROM `{BUCKET_NAME}` WHERE `type` = 'bag'"
+        )
+        rows = list(result)
+        return rows[0] if rows else 0
+    except Exception as exc:
+        logger.debug("Bag count query error: %s", exc)
+        return 0
+
+
+def get_edge_bag_count() -> int:
+    return _n1ql_bag_count(edge_cluster)
+
+
+def get_main_bag_count() -> int:
+    return _n1ql_bag_count(main_cluster)
 
 
 # ─── Pending sync count via N1QL ──────────────────────────────────────────────
@@ -215,6 +265,11 @@ def start_sync_monitor() -> None:
                     logger.warning(
                         "Sync divergence detected — Edge: %d, Main: %d", edge, main
                     )
+                    if _on_divergence_callback is not None:
+                        try:
+                            _on_divergence_callback(edge, main)
+                        except Exception as exc:
+                            logger.debug("Divergence callback error: %s", exc)
 
     t = threading.Thread(target=_monitor, daemon=True)
     t.start()

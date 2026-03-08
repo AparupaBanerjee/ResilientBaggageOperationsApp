@@ -121,7 +121,15 @@ function AirportSelector({ selected, onChange }) {
   )
 }
 
-export default function StatusBar({ health }) {
+const TABS = [
+  { id: 'ops',          label: 'LIVE OPS' },
+  { id: 'baggage',      label: 'BAGGAGE HALL' },
+  { id: 'workstations', label: 'WORKSTATIONS' },
+  { id: 'system',       label: 'SYSTEM' },
+  { id: 'audit',        label: 'AUDIT' },
+]
+
+export default function StatusBar({ health, activeTab, onTabChange }) {
   const online  = health?.online ?? true
   const pending = health?.pending_sync_count ?? 0
 
@@ -151,12 +159,42 @@ export default function StatusBar({ health }) {
       zIndex: 100,
     }}>
       {/* Left — Swedavia logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
         <img
           src="/swedavia-logo.png"
           alt="Swedavia"
           style={{ height: '36px', width: 'auto', opacity: 0.95 }}
         />
+      </div>
+
+      {/* Center — Tab navigation */}
+      <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', gap: '0' }}>
+        {TABS.map(tab => {
+          const active = tab.id === activeTab
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange?.(tab.id)}
+              style={{
+                background: 'none', border: 'none',
+                borderBottom: active ? '2px solid #388bfd' : '2px solid transparent',
+                borderTop: '2px solid transparent',
+                color: active ? '#e6edf3' : '#484f58',
+                fontFamily: 'IBM Plex Mono', fontSize: '12px',
+                fontWeight: active ? 700 : 500,
+                letterSpacing: '0.07em',
+                padding: '0 22px',
+                cursor: 'pointer',
+                transition: 'color 0.15s, border-color 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#7d8590' }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.color = '#484f58' }}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* Right — operator ID + connection status + pending */}
@@ -193,17 +231,32 @@ export default function StatusBar({ health }) {
         <div style={{ width: '1px', height: '20px', background: '#30363d' }} />
 
         {/* Connection status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="status-dot" style={{ background: online ? '#238636' : '#b22222' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+            {online ? (
+              <>
+                <path d="M1.5 8.5C5 4.8 9.2 3 12 3s7 1.8 10.5 5.5" stroke="#238636" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M4.5 11.5C7 9 9.4 8 12 8s5 1 7.5 3.5" stroke="#238636" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M7.5 14.5C9 13 10.4 12.5 12 12.5s3 .5 4.5 2" stroke="#238636" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="12" cy="18" r="1.5" fill="#238636"/>
+              </>
+            ) : (
+              <>
+                <path d="M1.5 8.5C5 4.8 9.2 3 12 3s7 1.8 10.5 5.5" stroke="#484f58" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M4.5 11.5C7 9 9.4 8 12 8s5 1 7.5 3.5" stroke="#484f58" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M7.5 14.5C9 13 10.4 12.5 12 12.5s3 .5 4.5 2" stroke="#484f58" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="12" cy="18" r="1.5" fill="#484f58"/>
+                <line x1="3" y1="3" x2="21" y2="21" stroke="#b22222" strokeWidth="2" strokeLinecap="round"/>
+              </>
+            )}
+          </svg>
           <span style={{
             fontFamily: 'Inter',
             fontSize: '12px',
-            color: online ? '#e6edf3' : '#b22222',
+            color: online ? '#e6edf3' : '#484f58',
             fontWeight: 500,
           }}>
-            {online
-              ? 'ONLINE — Edge and Main in sync'
-              : 'OFFLINE — Sync paused. Writing to edge only.'}
+            {online ? 'ONLINE' : 'OFFLINE — Sync paused. Writing to edge only.'}
           </span>
         </div>
 

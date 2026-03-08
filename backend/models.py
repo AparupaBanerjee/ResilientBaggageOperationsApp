@@ -14,10 +14,18 @@ class BagStatus(str, Enum):
     rerouted   = "rerouted"
 
 
+class PassengerStatus(str, Enum):
+    checked_in = "checked_in"
+    boarded    = "boarded"
+    no_show    = "no_show"
+
+
 class FlightStatus(str, Enum):
     scheduled = "scheduled"
     boarding  = "boarding"
+    delayed   = "delayed"
     departed  = "departed"
+    arrived   = "arrived"
     cancelled = "cancelled"
 
 
@@ -62,10 +70,17 @@ class BagStatusUpdate(BaseModel):
     status: BagStatus
 
 
+class FlightStatusUpdate(BaseModel):
+    status: FlightStatus
+
+
 class Flight(BaseModel):
     flight_id:      str
+    origin:         Optional[str] = "ARN"
     destination:    str
+    flight_type:    str = "outbound"   # "outbound" | "inbound"
     departure_time: str
+    arrival_time:   Optional[str] = None
     gate:           str
     belt:           str
     status:         FlightStatus = FlightStatus.scheduled
@@ -73,8 +88,11 @@ class Flight(BaseModel):
 
 class FlightCreate(BaseModel):
     flight_id:      str
+    origin:         Optional[str] = "ARN"
     destination:    str
+    flight_type:    str = "outbound"   # "outbound" | "inbound"
     departure_time: str
+    arrival_time:   Optional[str] = None
     gate:           str
     belt:           str
     status:         FlightStatus = FlightStatus.scheduled
@@ -92,6 +110,8 @@ class HealthResponse(BaseModel):
     online:             bool
     edge_doc_count:     int
     main_doc_count:     int
+    edge_bag_count:     int = 0
+    main_bag_count:     int = 0
     counts_in_sync:     bool
     pending_sync_count: int
     throughput_per_min: int = 0

@@ -30,6 +30,17 @@ function formatTs(iso) {
   } catch { return iso }
 }
 
+function holdDuration(holdSince) {
+  if (!holdSince) return null
+  try {
+    const diffMs = Date.now() - new Date(holdSince).getTime()
+    const mins = Math.floor(diffMs / 60000)
+    if (mins < 1) return '<1 min'
+    if (mins < 60) return `${mins} min`
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`
+  } catch { return null }
+}
+
 
 function SortIcon({ active, dir }) {
   if (!active) return <span style={{ color: '#30363d', marginLeft: '3px' }}>⇅</span>
@@ -277,6 +288,15 @@ export default function BaggageTable() {
                   >
                     <td style={{ fontFamily: 'IBM Plex Mono', fontSize: '11px', color: '#e6edf3' }}>
                       {bag.bag_id}
+                      {Array.isArray(bag.checkpoint_log) && bag.checkpoint_log.length > 1 && (
+                        <span style={{
+                          marginLeft: '5px', fontFamily: 'IBM Plex Mono', fontSize: '9px',
+                          color: '#484f58', border: '1px solid #30363d',
+                          borderRadius: '2px', padding: '0 3px', letterSpacing: '0.04em',
+                        }} title={`${bag.checkpoint_log.length} checkpoints`}>
+                          {bag.checkpoint_log.length}✓
+                        </span>
+                      )}
                     </td>
                     <td style={{ fontFamily: 'IBM Plex Mono', fontSize: '12px', fontWeight: 500 }}>
                       {bag.flight_id}
@@ -300,7 +320,7 @@ export default function BaggageTable() {
                           </span>
                         </div>
                       ) : isOnHold ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span className="status-dot" style={{ background: '#d29922' }} />
                           <span style={{ fontSize: '12px', color: '#d29922', fontFamily: 'IBM Plex Mono' }}>
                             On Hold
@@ -312,6 +332,22 @@ export default function BaggageTable() {
                           }}>
                             RETRIEVE
                           </span>
+                          {bag.hold_since && (
+                            <span style={{
+                              fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#9e6a03',
+                            }}>
+                              {holdDuration(bag.hold_since)}
+                            </span>
+                          )}
+                          {bag.hold_reason === 'flight_delayed' && (
+                            <span style={{
+                              fontFamily: 'IBM Plex Mono', fontSize: '9px',
+                              color: '#d29922', border: '1px solid #d2992244',
+                              borderRadius: '2px', padding: '0 4px', letterSpacing: '0.04em',
+                            }}>
+                              FLT DELAY
+                            </span>
+                          )}
                         </div>
                       ) : isRerouted ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -349,12 +385,21 @@ export default function BaggageTable() {
                         <div
                           onClick={() => !isLocked && setEditingBag(bag.bag_id)}
                           title={isLocked ? undefined : "Click to update status"}
-                          style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: isLocked ? 'default' : 'pointer' }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: isLocked ? 'default' : 'pointer', flexWrap: 'wrap' }}
                         >
                           <span className="status-dot" style={{ background: STATUS_COLORS[bag.status] ?? '#7d8590' }} />
                           <span style={{ fontSize: '12px', color: STATUS_COLORS[bag.status] ?? '#7d8590' }}>
                             {STATUS_LABELS[bag.status] ?? bag.status}
                           </span>
+                          {bag.hold_reason === 'flight_delayed' && (
+                            <span style={{
+                              fontFamily: 'IBM Plex Mono', fontSize: '9px',
+                              color: '#d29922', border: '1px solid #d2992244',
+                              borderRadius: '2px', padding: '0 4px', letterSpacing: '0.04em',
+                            }}>
+                              FLT DELAY
+                            </span>
+                          )}
                           <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#30363d' }}>✎</span>
                         </div>
                       )}

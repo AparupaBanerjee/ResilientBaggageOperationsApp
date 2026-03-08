@@ -107,6 +107,16 @@ function buildAlerts(bags, iot, health) {
     ts: now,
   })
 
+  // Passenger no-show bags on hold
+  const noShow = (bags ?? []).filter(b => b.hold_reason === 'passenger_no_show' && b.status === 'on_hold')
+  noShow.forEach(b => alerts.push({
+    id: `noshow-${b.bag_id}`,
+    sev: 'HIGH',
+    title: 'PASSENGER NO-SHOW',
+    body: `${b.passenger_name} — bag ${b.bag_id} on hold. OFFLOAD REQUIRED.`,
+    ts: now,
+  }))
+
   return alerts
 }
 

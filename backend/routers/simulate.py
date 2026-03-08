@@ -43,6 +43,7 @@ SEED_FLIGHTS = [
         "flight_id": "SK303",
         "destination": "Berlin Brandenburg",
         "departure_time": "2026-03-02T10:00:00+01:00",
+        "arrival_time":   "2026-03-02T12:05:00+01:00",
         "gate": "C7",
         "belt": "B1",
         "status": "departed",
@@ -193,6 +194,18 @@ def generate_load(count: int = 10, request: Request = None):
             db.edge_collection.insert(bag_id, doc)
             db.record_bag_write()
             inserted += 1
+            # Create matching passenger record
+            pax_id = f"PAX-{uuid.uuid4().hex[:8].upper()}"
+            db.edge_collection.insert(pax_id, {
+                "type":            "passenger",
+                "passenger_id":    pax_id,
+                "passenger_name":  passenger,
+                "flight_id":       flight["flight_id"],
+                "boarding_status": "checked_in",
+                "checked_in_at":   doc["last_updated"],
+                "boarded_at":      None,
+                "last_updated":    doc["last_updated"],
+            })
         except Exception:
             pass
 
@@ -251,9 +264,19 @@ def simulate_misroute(request: Request):
 
 @router.post("/seed", response_model=dict)
 def seed_data(request: Request = None):
-    """Seed 5 flights and 20 bags with realistic Swedish data."""
-    if db.edge_collection is None:
+    """Clear all operational data then seed 5 flights and 20 bags with realistic Swedish data."""
+    if db.edge_collection is None or db.edge_cluster is None:
         raise HTTPException(503, "Edge Couchbase not connected")
+
+    # ── Wipe existing operational docs ────────────────────────────────────────
+    for doc_type in ("bag", "passenger", "flight", "audit", "outage_event"):
+        try:
+            result = db.edge_cluster.query(
+                f"DELETE FROM `{db.BUCKET_NAME}` WHERE `type` = '{doc_type}'"
+            )
+            list(result)  # consume iterator
+        except Exception as exc:
+            logger.warning("Clear %s failed: %s", doc_type, exc)
 
     # ── Flights ───────────────────────────────────────────────────────────────
     for f in SEED_FLIGHTS:
@@ -270,16 +293,20 @@ def seed_data(request: Request = None):
             "active": True,
         })
 
-    # ── Bags (4 per flight, 20 total) ─────────────────────────────────────────
+    # ── Bags + Passengers (4 per flight, 20 total) ────────────────────────────
     bags_created = 0
+    pax_created  = 0
+    now_iso = datetime.now(timezone.utc).isoformat()
+
     for i, passenger in enumerate(SWEDISH_PASSENGERS):
         flight = SEED_FLIGHTS[i % len(SEED_FLIGHTS)]
         bag_id = f"BAG-{uuid.uuid4().hex[:8].upper()}"
+        pax_id = f"PAX-{uuid.uuid4().hex[:8].upper()}"
         status = BAG_STATUSES[i % len(BAG_STATUSES)]
         weight = round(random.uniform(7.0, 28.0), 1)
         age_minutes = random.randint(5, 90)
 
-        doc = {
+        bag_doc = {
             "type": "bag",
             "bag_id": bag_id,
             "flight_id": flight["flight_id"],
@@ -289,17 +316,33 @@ def seed_data(request: Request = None):
             "weight_kg": weight,
             "last_updated": _ts_offset(age_minutes),
             "sync_pending": False,
+            "checkpoint_log": [{"status": status, "ts": _ts_offset(age_minutes), "operator": "seed"}],
         }
-        db.edge_collection.upsert(bag_id, doc)
+        db.edge_collection.upsert(bag_id, bag_doc)
         bags_created += 1
+
+        # Create matching passenger record
+        pax_doc = {
+            "type":            "passenger",
+            "passenger_id":    pax_id,
+            "passenger_name":  passenger,
+            "flight_id":       flight["flight_id"],
+            "boarding_status": "checked_in",
+            "checked_in_at":   now_iso,
+            "boarded_at":      None,
+            "last_updated":    now_iso,
+        }
+        db.edge_collection.upsert(pax_id, pax_doc)
+        pax_created += 1
 
     if request:
         write_audit(_operator(request), "sim_seed",
-                    detail=f"Seeded {len(SEED_FLIGHTS)} flights + {bags_created} bags on Edge")
+                    detail=f"Seeded {len(SEED_FLIGHTS)} flights + {bags_created} bags + {pax_created} passengers on Edge")
     return {
-        "flights_seeded": len(SEED_FLIGHTS),
-        "bags_seeded": bags_created,
-        "message": f"Seeded {len(SEED_FLIGHTS)} flights and {bags_created} bags on Edge.",
+        "flights_seeded":    len(SEED_FLIGHTS),
+        "bags_seeded":       bags_created,
+        "passengers_seeded": pax_created,
+        "message": f"Seeded {len(SEED_FLIGHTS)} flights, {bags_created} bags, {pax_created} passengers on Edge.",
     }
 
 

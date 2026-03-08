@@ -8,9 +8,10 @@ const mono = { fontFamily: 'IBM Plex Mono' }
 function formatTs(iso) {
   if (!iso) return '—'
   try {
-    return new Date(iso).toLocaleTimeString('sv-SE', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-    })
+    const d = new Date(iso)
+    const date = d.toLocaleDateString('sv-SE', { month: '2-digit', day: '2-digit' })
+    const time = d.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+    return `${date} ${time}`
   } catch { return iso }
 }
 
@@ -25,78 +26,65 @@ function Badge({ label, color }) {
   )
 }
 
-// ── DCS panel ─────────────────────────────────────────────────────────────────
-
-function DCSPanel({ data }) {
-  if (!data?.length) return <Empty text="No DCS data" />
-  return (
-    <table className="ops-table">
-      <thead>
-        <tr>
-          <th>Flight</th><th>Dest</th><th>Gate</th>
-          <th>Checked In</th><th>Bags</th><th>Load</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map(f => {
-          const loadColor = f.load_factor >= 95 ? '#b22222'
-                          : f.load_factor >= 80 ? '#9e6a03' : '#238636'
-          return (
-            <tr key={f.flight_id}>
-              <td style={{ ...mono, fontSize: '11px', color: '#e6edf3', fontWeight: 600 }}>{f.flight_id}</td>
-              <td style={{ ...mono, fontSize: '11px', color: '#7d8590' }}>{f.destination}</td>
-              <td style={{ ...mono, fontSize: '11px', color: '#7d8590' }}>{f.gate}</td>
-              <td style={{ ...mono, fontSize: '11px', color: '#e6edf3' }}>
-                {f.checked_in} / {f.capacity}
-              </td>
-              <td style={{ ...mono, fontSize: '11px', color: '#e6edf3' }}>{f.bags_checked}</td>
-              <td>
-                <span style={{ ...mono, fontSize: '11px', fontWeight: 600, color: loadColor }}>
-                  {f.load_factor}%
-                </span>
-              </td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
-  )
-}
-
-// ── ACRIS panel ───────────────────────────────────────────────────────────────
+// ── Unified DCS + ACRIS panel ─────────────────────────────────────────────────
 
 const ACRIS_COLORS = {
   ON_SCHEDULE: '#238636', BOARDING: '#1f6feb', FINAL_CALL: '#9e6a03',
   DELAYED: '#b22222',     GATE_CLOSED: '#484f58',
 }
 
-function ACRISPanel({ data }) {
-  if (!data?.length) return <Empty text="No ACRIS data" />
+function FlightStatusPanel({ dcs, acris }) {
+  // Build a merged row per flight_id
+  const dcsMap   = Object.fromEntries((dcs   ?? []).map(f => [f.flight_id, f]))
+  const acrisMap = Object.fromEntries((acris ?? []).map(f => [f.flight_id, f]))
+  const flightIds = [...new Set([...Object.keys(dcsMap), ...Object.keys(acrisMap)])]
+
+  if (!flightIds.length) return <Empty text="No flight status data" />
+
   return (
     <table className="ops-table">
       <thead>
         <tr>
-          <th>Flight</th><th>Dest</th><th>Terminal</th>
-          <th>Sched Dep</th><th>Delay</th><th>Status</th>
+          <th>Flight</th><th>Dest</th><th>Gate</th>
+          <th>Sched Dep</th><th>Checked In</th><th>Bags</th><th>Load</th>
+          <th>Delay</th><th>Status</th>
         </tr>
       </thead>
       <tbody>
-        {data.map(f => (
-          <tr key={f.flight_id}>
-            <td style={{ ...mono, fontSize: '11px', color: '#e6edf3', fontWeight: 600 }}>{f.flight_id}</td>
-            <td style={{ ...mono, fontSize: '11px', color: '#7d8590' }}>{f.destination}</td>
-            <td style={{ ...mono, fontSize: '11px', color: '#7d8590' }}>{f.terminal}</td>
-            <td style={{ ...mono, fontSize: '11px', color: '#7d8590', whiteSpace: 'nowrap' }}>
-              {formatTs(f.scheduled_departure)}
-            </td>
-            <td style={{ ...mono, fontSize: '11px', color: f.delay_min > 0 ? '#b22222' : '#484f58' }}>
-              {f.delay_min > 0 ? `+${f.delay_min}m` : '—'}
-            </td>
-            <td>
-              <Badge label={f.acris_status.replace('_', ' ')} color={ACRIS_COLORS[f.acris_status] ?? '#7d8590'} />
-            </td>
-          </tr>
-        ))}
+        {flightIds.map(fid => {
+          const d = dcsMap[fid]   ?? {}
+          const a = acrisMap[fid] ?? {}
+          const loadColor = (d.load_factor ?? 0) >= 95 ? '#b22222'
+                          : (d.load_factor ?? 0) >= 80 ? '#9e6a03' : '#238636'
+          const acrisStatus = a.acris_status ?? ''
+          return (
+            <tr key={fid}>
+              <td style={{ ...mono, fontSize: '11px', color: '#e6edf3', fontWeight: 600 }}>{fid}</td>
+              <td style={{ ...mono, fontSize: '11px', color: '#7d8590' }}>{d.destination ?? a.destination ?? '—'}</td>
+              <td style={{ ...mono, fontSize: '11px', color: '#7d8590' }}>{d.gate ?? '—'}</td>
+              <td style={{ ...mono, fontSize: '11px', color: '#7d8590', whiteSpace: 'nowrap' }}>
+                {a.scheduled_departure ? formatTs(a.scheduled_departure) : '—'}
+              </td>
+              <td style={{ ...mono, fontSize: '11px', color: '#e6edf3' }}>
+                {d.checked_in != null ? `${d.checked_in} / ${d.capacity}` : '—'}
+              </td>
+              <td style={{ ...mono, fontSize: '11px', color: '#e6edf3' }}>{d.bags_checked ?? '—'}</td>
+              <td>
+                {d.load_factor != null
+                  ? <span style={{ ...mono, fontSize: '11px', fontWeight: 600, color: loadColor }}>{d.load_factor}%</span>
+                  : <span style={{ ...mono, fontSize: '11px', color: '#484f58' }}>—</span>}
+              </td>
+              <td style={{ ...mono, fontSize: '11px', color: (a.delay_min ?? 0) > 0 ? '#b22222' : '#484f58' }}>
+                {(a.delay_min ?? 0) > 0 ? `+${a.delay_min}m` : '—'}
+              </td>
+              <td>
+                {acrisStatus
+                  ? <Badge label={acrisStatus.replace(/_/g, ' ')} color={ACRIS_COLORS[acrisStatus] ?? '#7d8590'} />
+                  : <span style={{ ...mono, fontSize: '11px', color: '#484f58' }}>—</span>}
+              </td>
+            </tr>
+          )
+        })}
       </tbody>
     </table>
   )
@@ -302,16 +290,10 @@ export default function IntegrationsPanel() {
       {!collapsed && (
         <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Row 1: DCS + ACRIS side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <SectionHead label="DCS · CHECK-IN STATUS" badge="Departure Control" color="#1f6feb" />
-              <DCSPanel data={data?.dcs} />
-            </div>
-            <div>
-              <SectionHead label="ACRIS · FLIGHT STATUS" badge="AIDX feed" color="#1f6feb" />
-              <ACRISPanel data={data?.acris} />
-            </div>
+          {/* Row 1: Unified DCS + ACRIS table */}
+          <div>
+            <SectionHead label="DEPARTURE CONTROL · FLIGHT STATUS" badge="DCS + ACRIS" color="#1f6feb" />
+            <FlightStatusPanel dcs={data?.dcs} acris={data?.acris} />
           </div>
 
           {/* Row 2: RFID live feed */}

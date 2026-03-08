@@ -1,10 +1,8 @@
 import { useState, useCallback } from 'react'
 import StatusBar           from './components/StatusBar.jsx'
-import ThroughputChart     from './components/ThroughputChart.jsx'
 import FlightBoard         from './components/FlightBoard.jsx'
-import FlightCountdown     from './components/FlightCountdown.jsx'
+
 import SimulationControls  from './components/SimulationControls.jsx'
-import BaggageTable        from './components/BaggageTable.jsx'
 import BeltHeatmap         from './components/BeltHeatmap.jsx'
 import DigitalTwin         from './components/DigitalTwin.jsx'
 import ROIDashboard        from './components/ROIDashboard.jsx'
@@ -12,22 +10,22 @@ import IntegrationsPanel   from './components/IntegrationsPanel.jsx'
 import AuditLog            from './components/AuditLog.jsx'
 import AlertRail           from './components/AlertRail.jsx'
 import ShiftSummary               from './components/ShiftSummary.jsx'
-import HybridArchitectureStatus   from './components/HybridArchitectureStatus.jsx'
+import PassengerBoard             from './components/PassengerBoard.jsx'
+import WorkstationView            from './components/WorkstationView.jsx'
+import ConveyorScreeningPanel     from './components/ConveyorScreeningPanel.jsx'
+import SplitBrainPanel           from './components/SplitBrainPanel.jsx'
+import ThroughputChart          from './components/ThroughputChart.jsx'
+import BaggageKPIBar            from './components/BaggageKPIBar.jsx'
+import BaggageTable             from './components/BaggageTable.jsx'
 import { useHealth }              from './hooks/useHealth.js'
-
-const TABS = [
-  { id: 'ops',     label: 'LIVE OPS',     desc: 'Simulation & real-time sync' },
-  { id: 'baggage', label: 'BAGGAGE HALL', desc: 'Bag registry' },
-  { id: 'system',  label: 'SYSTEM',       desc: 'Digital twin, integrations & audit log' },
-]
 
 export default function App() {
   const { health, error } = useHealth(3000)
   const [alertOpen,   setAlertOpen]   = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [roiOpen,     setRoiOpen]     = useState(false)
+  const [simOpen,     setSimOpen]     = useState(false)
   const [activeTab,   setActiveTab]   = useState('ops')
-
 
   const refresh = useCallback(() => {}, [])
 
@@ -38,70 +36,15 @@ export default function App() {
       color: '#e6edf3',
       padding: '0',
       margin: '0',
+      marginLeft: simOpen ? '300px' : '0',
       marginRight: alertOpen ? '276px' : '0',
-      transition: 'margin-right 0.2s ease',
+      transition: 'margin-left 0.2s ease, margin-right 0.2s ease',
     }}>
-      {/* ── Fixed header ── */}
-      <StatusBar health={health} />
+      {/* ── Fixed header with tabs ── */}
+      <StatusBar health={health} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* ── Fixed tab bar ── */}
-      <div style={{
-        position: 'fixed',
-        top: '64px',
-        left: 0,
-        right: alertOpen ? '276px' : 0,
-        height: '40px',
-        background: '#0d1117',
-        borderBottom: '1px solid #21262d',
-        display: 'flex',
-        alignItems: 'stretch',
-        paddingLeft: '24px',
-        gap: '0',
-        zIndex: 90,
-        transition: 'right 0.2s ease',
-      }}>
-        {TABS.map(tab => {
-          const active = tab.id === activeTab
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: active ? '2px solid #388bfd' : '2px solid transparent',
-                color: active ? '#e6edf3' : '#484f58',
-                fontFamily: 'IBM Plex Mono',
-                fontSize: '11px',
-                fontWeight: active ? 700 : 400,
-                letterSpacing: '0.08em',
-                padding: '0 20px',
-                cursor: 'pointer',
-                transition: 'color 0.15s, border-color 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#7d8590' }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.color = '#484f58' }}
-            >
-              {tab.label}
-            </button>
-          )
-        })}
-
-        {/* Active tab descriptor */}
-        <span style={{
-          fontFamily: 'IBM Plex Mono',
-          fontSize: '10px',
-          color: '#30363d',
-          alignSelf: 'center',
-          paddingLeft: '16px',
-          letterSpacing: '0.04em',
-        }}>
-          {TABS.find(t => t.id === activeTab)?.desc}
-        </span>
-      </div>
-
-      {/* ── Modals ── */}
+      {/* ── Persistent overlays (any tab) ── */}
+      <SimulationControls health={health} onHealthChange={refresh} open={simOpen} onToggle={() => setSimOpen(o => !o)} />
       <AlertRail health={health} open={alertOpen} onToggle={() => setAlertOpen(o => !o)} />
       <ShiftSummary open={summaryOpen} onClose={() => setSummaryOpen(false)} />
 
@@ -125,13 +68,13 @@ export default function App() {
 
       {/* ── Page content ── */}
       <div style={{
-        paddingTop: '104px',   /* 64px header + 40px tab bar */
-        paddingLeft: '24px',
-        paddingRight: '24px',
-        paddingBottom: '32px',
+        paddingTop: '74px',   /* 64px header + 10px breathing room */
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingBottom: '24px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: '10px',
       }}>
 
         {error && (
@@ -149,24 +92,18 @@ export default function App() {
         ══════════════════════════════════════════════ */}
         {activeTab === 'ops' && (
           <>
-            {/* Flight countdown strip */}
-            <FlightCountdown />
-
-            {/* Hybrid architecture + Throughput */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'stretch' }}>
-              <HybridArchitectureStatus isCloudOnline={health?.online ?? false} health={health} />
+            <BaggageKPIBar />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '10px', alignItems: 'stretch' }}>
               <ThroughputChart health={health} />
+              <SplitBrainPanel isCloudOnline={health?.online ?? false} health={health} />
             </div>
 
-            {/* FlightBoard + SimulationControls */}
-            <div style={{ display: 'grid', gridTemplateColumns: '60% 40%', gap: '16px' }}>
-              <div style={{ minHeight: '260px' }}>
-                <FlightBoard />
-              </div>
-              <div style={{ minHeight: '260px' }}>
-                <SimulationControls health={health} onHealthChange={refresh} />
-              </div>
+            {/* FlightBoard + ConveyorScreeningPanel side by side, same height */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '10px', alignItems: 'stretch' }}>
+              <FlightBoard />
+              <ConveyorScreeningPanel />
             </div>
+            <BeltHeatmap />
           </>
         )}
 
@@ -175,20 +112,33 @@ export default function App() {
         ══════════════════════════════════════════════ */}
         {activeTab === 'baggage' && (
           <>
+            <PassengerBoard />
             <BaggageTable />
           </>
         )}
 
         {/* ══════════════════════════════════════════════
-            TAB 3 — SYSTEM
+            TAB 3 — WORKSTATIONS
+        ══════════════════════════════════════════════ */}
+        {activeTab === 'workstations' && (
+          <WorkstationView health={health} />
+        )}
+
+        {/* ══════════════════════════════════════════════
+            TAB 4 — SYSTEM
         ══════════════════════════════════════════════ */}
         {activeTab === 'system' && (
           <>
             <DigitalTwin />
-            <BeltHeatmap />
             <IntegrationsPanel />
-            <AuditLog />
           </>
+        )}
+
+        {/* ══════════════════════════════════════════════
+            TAB 5 — AUDIT
+        ══════════════════════════════════════════════ */}
+        {activeTab === 'audit' && (
+          <AuditLog />
         )}
 
         <div style={{

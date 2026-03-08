@@ -48,6 +48,8 @@ export default function ThroughputChart({ health }) {
       display: 'flex',
       flexDirection: 'column',
       gap: '12px',
+      height: '100%',
+      boxSizing: 'border-box',
     }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

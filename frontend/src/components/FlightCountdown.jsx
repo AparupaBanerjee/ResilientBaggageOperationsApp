@@ -50,7 +50,7 @@ function CountdownTile({ flight }) {
       borderBottom: `2px solid ${borderColor}`,
       borderRadius: '4px 4px 0 0',
       padding: '6px 12px',
-      minWidth: '110px',
+      width: '100%',
       display: 'flex', flexDirection: 'column', gap: '2px',
       position: 'relative',
       overflow: 'hidden',
@@ -106,10 +106,13 @@ export default function FlightCountdown() {
 
   return (
     <div style={{
-      display: 'flex', gap: '6px', overflowX: 'auto',
-      paddingBottom: '2px',
+      display: 'flex', gap: '6px',
     }}>
-      {flights.map(f => <CountdownTile key={f.flight_id} flight={f} />)}
+      {flights.map(f => (
+        <div key={f.flight_id} style={{ flex: 1, minWidth: 0 }}>
+          <CountdownTile flight={f} />
+        </div>
+      ))}
     </div>
   )
 }

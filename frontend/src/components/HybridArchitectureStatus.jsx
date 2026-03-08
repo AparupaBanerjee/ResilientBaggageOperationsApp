@@ -1,33 +1,32 @@
-import { Server, Cloud, CloudOff, ArrowRightLeft, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Server, Cloud, CloudOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function HybridArchitectureStatus({ isCloudOnline, health }) {
-  const edgeDocs  = health?.edge_doc_count ?? '—'
-  const mainDocs  = health?.main_doc_count  ?? '—'
-  const inSync    = health?.counts_in_sync  ?? true
-  const pending   = health?.pending_sync_count ?? 0
+  const edgeDocs = health?.edge_bag_count  ?? '—'
+  const mainDocs = health?.main_bag_count  ?? '—'
+  const inSync   = health?.counts_in_sync  ?? true
+  const pending  = health?.pending_sync_count ?? 0
 
-  // ── Shared card base ───────────────────────────────────────────────────────
-  const nodeBase = `
-    relative flex flex-col items-center gap-2 p-3 rounded-xl border
-    transition-all duration-500 cursor-default select-none
-  `
+  const footerMsg = !isCloudOnline
+    ? 'Local node handling routing autonomously — data queued for sync'
+    : inSync
+      ? 'All baggage data syncing to cloud analytics in real-time'
+      : `${pending} doc(s) pending sync — Edge ahead of Main`
 
   return (
-    <div className="card" style={{ padding: '16px 20px' }}>
+    <div className="card" style={{ padding: '14px 20px' }}>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="label-upper" style={{ letterSpacing: '0.12em' }}>
-          Hybrid Architecture
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <span className="label-upper" style={{ letterSpacing: '0.12em' }}>Hybrid Architecture</span>
         <motion.span
-          key={isCloudOnline ? 'online' : 'offline'}
-          initial={{ opacity: 0, scale: 0.85 }}
+          key={isCloudOnline ? 'on' : 'off'}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.25 }}
-          className="font-mono text-[10px] font-bold tracking-widest px-2 py-0.5 rounded"
+          transition={{ duration: 0.2 }}
           style={{
+            fontFamily: 'IBM Plex Mono', fontSize: '9px', fontWeight: 700,
+            letterSpacing: '0.1em', padding: '2px 8px', borderRadius: '3px',
             background: isCloudOnline ? '#0d2a18' : '#3d1515',
             color:      isCloudOnline ? '#3fb950' : '#f85149',
             border:     `1px solid ${isCloudOnline ? '#238636' : '#b22222'}`,
@@ -37,207 +36,191 @@ export default function HybridArchitectureStatus({ isCloudOnline, health }) {
         </motion.span>
       </div>
 
-      {/* Three-column grid */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      {/* Node grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px' }}>
 
-        {/* ── LOCAL NODE ─────────────────────────────────────── */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-          className={nodeBase}
-          style={{
-            background:   '#0a1f0f',
-            borderColor:  '#238636',
-            boxShadow:    '0 0 18px 2px rgba(35,134,54,0.18)',
-          }}
-        >
-          {/* Live pulse ring */}
-          <span className="absolute top-3 right-3">
+        {/* ── LOCAL NODE ── */}
+        <div style={{
+          background: '#0a1f0f',
+          border: '1px solid #238636',
+          borderRadius: '8px',
+          padding: '16px 14px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+          boxShadow: '0 0 16px 2px rgba(35,134,54,0.12)',
+          position: 'relative',
+        }}>
+          {/* Live pulse */}
+          <span style={{ position: 'absolute', top: '10px', right: '10px' }}>
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-60" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
             </span>
           </span>
 
-          <div
-            className="p-3 rounded-lg"
-            style={{ background: 'rgba(35,134,54,0.15)', border: '1px solid rgba(35,134,54,0.3)' }}
-          >
-            <Server size={22} className="text-green-400" />
+          {/* Icon */}
+          <div style={{
+            background: 'rgba(35,134,54,0.15)', border: '1px solid rgba(35,134,54,0.3)',
+            borderRadius: '8px', padding: '10px',
+          }}>
+            <Server size={24} color="#3fb950" />
           </div>
 
-          <div className="text-center">
-            <p className="font-mono text-[9px] tracking-widest text-slate-500 uppercase mb-0.5">Local Node</p>
-            <p className="font-mono text-[11px] font-bold text-slate-100">Edge · ARN</p>
+          {/* Labels */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '10px', fontWeight: 700, color: '#3fb950', letterSpacing: '0.1em', marginBottom: '2px' }}>
+              LOCAL NODE
+            </div>
+            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '10px', color: '#7d8590' }}>
+              Edge · ARN
+            </div>
           </div>
 
+          {/* Bag count */}
           <div style={{ textAlign: 'center' }}>
             <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '22px', fontWeight: 700, color: '#3fb950', lineHeight: 1 }}>
               {edgeDocs}
             </span>
-            <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#484f58', letterSpacing: '0.08em', marginTop: '2px' }}>DOCS</p>
+            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#484f58', marginLeft: '4px' }}>bags</span>
           </div>
 
-          <span
-            className="font-mono text-[9px] font-bold tracking-widest px-2.5 py-0.5 rounded-full"
-            style={{ background: '#0d2a18', color: '#3fb950', border: '1px solid #238636' }}
-          >
-            OPERATIONAL
-          </span>
-        </motion.div>
+          {/* Status badge */}
+          <div style={{
+            fontFamily: 'IBM Plex Mono', fontSize: '9px', fontWeight: 700,
+            color: '#3fb950', letterSpacing: '0.1em',
+            background: '#0d2a18', border: '1px solid #238636',
+            borderRadius: '20px', padding: '2px 10px',
+          }}>
+            ◎ OPERATIONAL
+          </div>
+        </div>
 
-        {/* ── SYNC BRIDGE ────────────────────────────────────── */}
-        <div className="flex flex-col items-center gap-2 px-1">
+        {/* ── SYNC BRIDGE ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '0 4px' }}>
           <AnimatePresence mode="wait">
             {isCloudOnline ? (
-              <motion.div
-                key="sync-on"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-col items-center gap-2"
+              <motion.div key="on"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
               >
-                {/* Animated flow arrows */}
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <ArrowRight size={14} className="text-cyan-500" />
+                <motion.div animate={{ x: [0, -4, 0] }} transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}>
+                  <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '16px', color: '#22d3ee' }}>←</span>
                 </motion.div>
-
-                <div
-                  className="font-mono text-[8px] tracking-[0.18em] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: '#071e26', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.35)' }}
-                >
-                  SYNC
-                </div>
-
-                <motion.div
-                  animate={{ x: [0, -5, 0] }}
-                  transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-                >
-                  <ArrowLeft size={14} className="text-cyan-500" />
+                <motion.div animate={{ x: [0, 4, 0] }} transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}>
+                  <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '16px', color: '#22d3ee' }}>→</span>
                 </motion.div>
+                <span style={{
+                  fontFamily: 'IBM Plex Mono', fontSize: '9px', fontWeight: 700,
+                  color: '#22d3ee', letterSpacing: '0.12em',
+                  marginTop: '2px',
+                }}>SYNC</span>
               </motion.div>
             ) : (
-              <motion.div
-                key="sync-off"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-col items-center gap-2"
+              <motion.div key="off"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
               >
-                <ArrowRightLeft size={14} className="text-red-600 opacity-40" />
-                <div
-                  className="font-mono text-[8px] tracking-[0.18em] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: '#2a0a0a', color: '#f85149', border: '1px solid rgba(248,81,73,0.3)' }}
-                >
-                  OFFLINE
-                </div>
+                <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '16px', color: '#4a1515', opacity: 0.5 }}>←</span>
+                <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '16px', color: '#4a1515', opacity: 0.5 }}>→</span>
+                <span style={{
+                  fontFamily: 'IBM Plex Mono', fontSize: '9px', fontWeight: 700,
+                  color: '#f85149', letterSpacing: '0.1em', marginTop: '2px',
+                }}>OFF</span>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* ── CLOUD ANALYTICS ────────────────────────────────── */}
-        <motion.div
-          whileHover={{ scale: isCloudOnline ? 1.02 : 1.01 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-          className={nodeBase}
-          style={{
-            background:  isCloudOnline ? '#071e26' : '#1a0d0d',
-            borderColor: isCloudOnline ? 'rgba(34,211,238,0.5)' : '#4a1515',
-            boxShadow:   isCloudOnline
-              ? '0 0 18px 2px rgba(34,211,238,0.12)'
-              : '0 0 8px 1px rgba(248,81,73,0.06)',
-            opacity: isCloudOnline ? 1 : 0.65,
-          }}
-        >
+        {/* ── CLOUD ANALYTICS ── */}
+        <div style={{
+          background: isCloudOnline ? '#071e26' : '#1a0d0d',
+          border: `1px solid ${isCloudOnline ? 'rgba(34,211,238,0.5)' : '#4a1515'}`,
+          borderRadius: '8px',
+          padding: '16px 14px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+          boxShadow: isCloudOnline ? '0 0 16px 2px rgba(34,211,238,0.10)' : 'none',
+          opacity: isCloudOnline ? 1 : 0.6,
+          transition: 'opacity 0.3s',
+          position: 'relative',
+        }}>
           {/* Status dot */}
-          <span className="absolute top-3 right-3">
+          <span style={{ position: 'absolute', top: '10px', right: '10px' }}>
             {isCloudOnline ? (
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-50" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
               </span>
             ) : (
-              <span className="inline-flex rounded-full h-2 w-2 bg-red-700" />
+              <span className="inline-flex rounded-full h-2 w-2 bg-red-800" />
             )}
           </span>
 
-          <div
-            className="p-3 rounded-lg transition-all duration-500"
-            style={{
-              background: isCloudOnline ? 'rgba(34,211,238,0.1)' : 'rgba(248,81,73,0.08)',
-              border:     isCloudOnline ? '1px solid rgba(34,211,238,0.25)' : '1px solid rgba(248,81,73,0.2)',
-            }}
-          >
+          {/* Icon */}
+          <div style={{
+            background: isCloudOnline ? 'rgba(34,211,238,0.1)' : 'rgba(248,81,73,0.08)',
+            border: isCloudOnline ? '1px solid rgba(34,211,238,0.25)' : '1px solid rgba(248,81,73,0.2)',
+            borderRadius: '8px', padding: '10px',
+            transition: 'all 0.3s',
+          }}>
             {isCloudOnline
-              ? <Cloud size={22} className="text-cyan-400" />
-              : <CloudOff size={22} className="text-red-700" />
+              ? <Cloud size={24} color="#22d3ee" />
+              : <CloudOff size={24} color="#b22222" />
             }
           </div>
 
-          <div className="text-center">
-            <p className="font-mono text-[9px] tracking-widest text-slate-500 uppercase mb-0.5">Cloud Analytics</p>
-            <p
-              className="font-mono text-[11px] font-bold transition-colors duration-500"
-              style={{ color: isCloudOnline ? '#e6edf3' : '#6b3333' }}
-            >
+          {/* Labels */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontFamily: 'IBM Plex Mono', fontSize: '10px', fontWeight: 700,
+              color: isCloudOnline ? '#22d3ee' : '#6b3333',
+              letterSpacing: '0.1em', marginBottom: '2px',
+            }}>
+              CLOUD ANALYTICS
+            </div>
+            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '10px', color: '#7d8590' }}>
               {isCloudOnline ? 'Connected' : 'Unavailable'}
-            </p>
+            </div>
           </div>
 
+          {/* Bag count */}
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '22px', fontWeight: 700, color: isCloudOnline ? '#22d3ee' : '#4a1515', lineHeight: 1 }}>
+            <span style={{
+              fontFamily: 'IBM Plex Mono', fontSize: '22px', fontWeight: 700,
+              color: isCloudOnline ? '#22d3ee' : '#4a1515', lineHeight: 1,
+            }}>
               {isCloudOnline ? mainDocs : '—'}
             </span>
-            <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#484f58', letterSpacing: '0.08em', marginTop: '2px' }}>DOCS</p>
+            {isCloudOnline && <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#484f58', marginLeft: '4px' }}>bags</span>}
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={isCloudOnline ? 'cl-on' : 'cl-off'}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="font-mono text-[9px] font-bold tracking-widest px-2.5 py-0.5 rounded-full"
-              style={isCloudOnline
-                ? { background: '#071e26', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.35)' }
-                : { background: '#2a0a0a', color: '#f85149', border: '1px solid rgba(248,81,73,0.3)' }
-              }
-            >
-              {isCloudOnline ? 'ONLINE' : 'OFFLINE'}
-            </motion.span>
-          </AnimatePresence>
-        </motion.div>
+          {/* Status badge */}
+          <div style={{
+            fontFamily: 'IBM Plex Mono', fontSize: '9px', fontWeight: 700,
+            letterSpacing: '0.1em',
+            background: isCloudOnline ? '#071e26' : '#2a0a0a',
+            border: `1px solid ${isCloudOnline ? 'rgba(34,211,238,0.4)' : 'rgba(248,81,73,0.3)'}`,
+            color: isCloudOnline ? '#22d3ee' : '#f85149',
+            borderRadius: '20px', padding: '2px 10px',
+          }}>
+            ● {isCloudOnline ? 'ONLINE' : 'OFFLINE'}
+          </div>
+        </div>
 
       </div>
 
-      {/* Footer status line */}
+      {/* Footer */}
       <AnimatePresence mode="wait">
         <motion.p
-          key={isCloudOnline ? 'ft-on' : 'ft-off'}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.3 }}
-          className="font-mono text-[10px] text-center mt-3 pt-3"
+          key={footerMsg}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
           style={{
-            borderTop: '1px solid #21262d',
-            color: isCloudOnline ? '#3fb950' : '#7d8590',
-            letterSpacing: '0.04em',
+            fontFamily: 'IBM Plex Mono', fontSize: '10px', textAlign: 'center',
+            marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #21262d',
+            color: isCloudOnline ? (inSync ? '#3fb950' : '#d29922') : '#7d8590',
+            letterSpacing: '0.02em',
           }}
         >
-          {!isCloudOnline
-            ? '⚠  Local node handling routing autonomously — data queued for sync'
-            : inSync
-              ? '↑↓  Edge and Main in sync'
-              : `⚠  ${pending} doc(s) pending sync — Edge ahead of Main`
-          }
+          {footerMsg}
         </motion.p>
       </AnimatePresence>
 

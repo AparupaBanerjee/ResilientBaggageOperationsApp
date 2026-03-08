@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from couchbase.exceptions import DocumentExistsException, DocumentNotFoundException
 
 import db
-from models import FlightCreate
+from models import FlightCreate, FlightStatusUpdate
 from audit import write_audit
 
 router = APIRouter(prefix="/flights", tags=["flights"])
@@ -150,6 +150,11 @@ def cancel_flight(flight_id: str, request: Request):
                 bagdoc["status"]           = "on_hold"
                 bagdoc["destination_belt"] = None
                 bagdoc["last_updated"]     = now
+                bagdoc["hold_since"]       = now
+                bagdoc["hold_reason"]      = "flight_cancelled"
+                if "checkpoint_log" not in bagdoc or not isinstance(bagdoc["checkpoint_log"], list):
+                    bagdoc["checkpoint_log"] = []
+                bagdoc["checkpoint_log"].append({"status": "on_hold", "ts": now, "operator": "system"})
                 db.edge_collection.replace(doc_id, bagdoc)
                 on_hold_count += 1
 
@@ -182,4 +187,76 @@ def cancel_flight(flight_id: str, request: Request):
         "on_hold_bags":     on_hold_count,
         "offloaded_bags":   offloaded_count,
         "timestamp":        now,
+    }
+
+
+@router.put("/{flight_id}/status", response_model=dict)
+def update_flight_status(flight_id: str, update: FlightStatusUpdate, request: Request):
+    """
+    Update a flight's operational status (boarding, delayed, departed, scheduled).
+    Cannot be used to cancel — use POST /{flight_id}/cancel for that.
+    When delayed, tags all check_in bags with hold_reason=flight_delayed.
+    """
+    if db.edge_collection is None or db.edge_cluster is None:
+        raise HTTPException(503, "Edge Couchbase not connected")
+
+    if update.status.value == "cancelled":
+        raise HTTPException(400, "Use POST /flights/{flight_id}/cancel to cancel a flight")
+
+    op = request.headers.get("x-operator-id", "anonymous")
+    now = datetime.now(timezone.utc).isoformat()
+
+    flight_doc_id = f"flight::{flight_id}"
+    try:
+        res = db.edge_collection.get(flight_doc_id)
+        flight = res.content_as[dict]
+    except DocumentNotFoundException:
+        raise HTTPException(404, f"Flight {flight_id} not found")
+
+    if flight.get("status") == "cancelled":
+        raise HTTPException(409, f"Flight {flight_id} is cancelled — cannot update status")
+
+    prev_status = flight.get("status", "unknown")
+    flight["status"]       = update.status.value
+    flight["last_updated"] = now
+
+    try:
+        db.edge_collection.replace(flight_doc_id, flight)
+    except Exception as exc:
+        raise HTTPException(500, f"Update error: {exc}")
+
+    write_audit(op, "flight_status_update", flight_doc_id,
+                detail=f"{prev_status} → {update.status.value}")
+
+    # When a flight is delayed, tag its check_in bags so operators know
+    delayed_bags = 0
+    if update.status.value == "delayed" and prev_status != "delayed":
+        try:
+            result = db.edge_cluster.query(
+                f"SELECT META().id AS _doc_id, b.* "
+                f"FROM `{db.BUCKET_NAME}` b "
+                f"WHERE b.`type` = 'bag' AND b.flight_id = '{flight_id}' AND b.status = 'check_in'"
+            )
+            for bag in list(result):
+                doc_id = bag.get("_doc_id")
+                if not doc_id:
+                    continue
+                try:
+                    res2    = db.edge_collection.get(doc_id)
+                    bagdoc  = res2.content_as[dict]
+                    bagdoc["hold_reason"]  = "flight_delayed"
+                    bagdoc["last_updated"] = now
+                    db.edge_collection.replace(doc_id, bagdoc)
+                    delayed_bags += 1
+                except Exception:
+                    pass
+        except Exception as exc:
+            logger.warning("update_flight_status: delayed bag tagging failed: %s", exc)
+
+    return {
+        "flight_id":    flight_id,
+        "prev_status":  prev_status,
+        "status":       update.status.value,
+        "delayed_bags": delayed_bags,
+        "timestamp":    now,
     }
