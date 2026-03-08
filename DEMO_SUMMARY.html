@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resilient Baggage Operations — Hackathon Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-dark:   #0c2340;
+      --blue-mid:    #003580;
+      --blue-light:  #e8f0fb;
+      --amber:       #f59e0b;
+      --amber-light: #fef3c7;
+      --green:       #16a34a;
+      --green-light: #dcfce7;
+      --red:         #dc2626;
+      --red-light:   #fee2e2;
+      --grey-bg:     #f1f5f9;
+      --grey-card:   #ffffff;
+      --grey-border: #e2e8f0;
+      --grey-text:   #64748b;
+      --dark-text:   #0f172a;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #eef2f7;
+      color: var(--dark-text);
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #0c2340 0%, #003580 60%, #1a5276 100%);
+      color: white;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .header-runway {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 6px;
+      background: repeating-linear-gradient(90deg, var(--amber) 0px, var(--amber) 40px, transparent 40px, transparent 80px);
+      opacity: 0.7;
+    }
+    .header-inner {
+      max-width: 1100px; margin: 0 auto; padding: 48px 32px 56px;
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 32px;
+    }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 4px 14px; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; color: rgba(255,255,255,0.85); margin-bottom: 16px;
+    }
+    .header h1 { font-size: 36px; font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+    .header h1 span { color: var(--amber); }
+    .header p { font-size: 16px; color: rgba(255,255,255,0.75); max-width: 560px; }
+    .header-meta { text-align: right; }
+    .header-meta .tag {
+      display: inline-block; background: var(--amber); color: var(--blue-dark);
+      font-weight: 700; font-size: 11px; letter-spacing: 0.08em;
+      padding: 4px 12px; border-radius: 3px; margin-bottom: 8px;
+    }
+    .header-meta .stack {
+      font-size: 12px; color: rgba(255,255,255,0.6); line-height: 2;
+    }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+    .section { margin-bottom: 56px; }
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.15em; color: var(--blue-mid);
+      text-transform: uppercase; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--grey-border);
+    }
+    .section h2 { font-size: 26px; font-weight: 700; margin-bottom: 20px; color: var(--blue-dark); }
+    .card {
+      background: white; border: 1px solid var(--grey-border); border-radius: 12px;
+      padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    /* ── DEPARTURE BOARD ── */
+    .dep-board {
+      background: #0a0e1a; border-radius: 10px; padding: 24px;
+      font-family: 'IBM Plex Mono', monospace; overflow: hidden;
+    }
+    .dep-board-header {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 16px;
+    }
+    .dep-board-title { color: var(--amber); font-size: 11px; font-weight: 600; letter-spacing: 0.2em; }
+    .dep-board-live { color: #16a34a; font-size: 10px; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .dep-row {
+      display: grid; grid-template-columns: 70px 140px 1fr 100px 90px;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 13px;
+    }
+    .dep-row-head { color: rgba(255,255,255,0.3); font-size: 9px; letter-spacing: 0.1em; }
+    .dep-flight { color: white; font-weight: 600; }
+    .dep-dest { color: rgba(255,255,255,0.7); }
+    .dep-time { color: rgba(255,255,255,0.5); }
+    .dep-gate { color: var(--amber); }
+    .dep-status-ok { color: #3fb950; }
+    .dep-status-hold { color: var(--amber); }
+    .dep-status-cancel { color: #f85149; }
+    .dep-status-board { color: #22d3ee; }
+
+    /* ── SCENARIO STEPS ── */
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: flex; gap: 16px; position: relative;
+    }
+    .step:not(:last-child)::before {
+      content: ''; position: absolute; left: 19px; top: 40px; bottom: -8px; width: 2px;
+      background: var(--grey-border);
+    }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0;
+      background: var(--blue-light); color: var(--blue-mid); border: 2px solid var(--blue-mid);
+      margin-top: 4px;
+    }
+    .step-num.red { background: var(--red-light); color: var(--red); border-color: var(--red); }
+    .step-num.amber { background: var(--amber-light); color: #92400e; border-color: var(--amber); }
+    .step-num.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .step-body { padding: 4px 0 24px; flex: 1; }
+    .step-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .step-body p { font-size: 14px; color: var(--grey-text); }
+    .step-body .note {
+      margin-top: 8px; padding: 8px 12px; background: var(--blue-light);
+      border-left: 3px solid var(--blue-mid); border-radius: 0 4px 4px 0;
+      font-size: 12px; color: var(--blue-mid); font-weight: 500;
+    }
+    .step-body .note.amber { background: var(--amber-light); border-color: var(--amber); color: #78350f; }
+    .step-body .note.green { background: var(--green-light); border-color: var(--green); color: #14532d; }
+    .step-body .note.red { background: var(--red-light); border-color: var(--red); color: #7f1d1d; }
+
+    /* ── PILL TAGS ── */
+    .pill {
+      display: inline-block; padding: 2px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    }
+    .pill-blue { background: var(--blue-light); color: var(--blue-mid); }
+    .pill-green { background: var(--green-light); color: var(--green); }
+    .pill-amber { background: var(--amber-light); color: #92400e; }
+    .pill-red { background: var(--red-light); color: var(--red); }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: var(--blue-dark); color: white; padding: 10px 16px; text-align: left; font-size: 12px; letter-spacing: 0.06em; }
+    td { padding: 10px 16px; border-bottom: 1px solid var(--grey-border); }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    /* ── RESOLUTION OPTIONS ── */
+    .resolution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .res-card {
+      border-radius: 10px; padding: 24px; border: 2px solid;
+    }
+    .res-card.cloud { border-color: #22d3ee; background: #f0fdff; }
+    .res-card.manual { border-color: var(--amber); background: var(--amber-light); }
+    .res-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .res-card.cloud h3 { color: #0369a1; }
+    .res-card.manual h3 { color: #92400e; }
+    .res-card ul { list-style: none; }
+    .res-card ul li { font-size: 14px; color: var(--dark-text); padding: 4px 0; display: flex; gap: 8px; }
+    .res-card ul li::before { content: '→'; font-weight: 700; }
+    .res-card.cloud ul li::before { color: #0369a1; }
+    .res-card.manual ul li::before { color: #92400e; }
+
+    /* ── LINKS ── */
+    .link-card {
+      display: flex; align-items: center; gap: 16px;
+      border: 1px solid var(--grey-border); border-radius: 10px; padding: 18px 24px;
+      background: white; text-decoration: none; color: var(--dark-text);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .link-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: var(--blue-mid); }
+    .link-icon { width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .link-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .link-card p { font-size: 12px; color: var(--grey-text); }
+    .link-card code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--blue-mid); }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--blue-dark); color: rgba(255,255,255,0.5);
+      text-align: center; padding: 24px 32px; font-size: 12px;
+    }
+
+    /* ── SVG DIAGRAM STYLES ── */
+    .diagram-wrap { background: #f8fafc; border: 1px solid var(--grey-border); border-radius: 12px; padding: 32px; overflow-x: auto; }
+    svg text { font-family: 'Inter', sans-serif; }
+
+    @media (max-width: 700px) {
+      .header-inner { grid-template-columns: 1fr; }
+      .grid-2, .grid-3, .resolution-grid { grid-template-columns: 1fr; }
+      .dep-row { grid-template-columns: 60px 1fr 80px; }
+      .dep-time, .dep-gate { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-badge">✈ COUCHBASE HACKATHON 2026 &nbsp;·&nbsp; SWEDAVIA</div>
+      <h1>Resilient Baggage Operations<br/><span>Edge-Cloud Split-Brain Resolution</span></h1>
+      <p>A live demonstration of always-on airport baggage operations powered by Couchbase distributed edge architecture — ensuring zero downtime even when cloud connectivity is lost.</p>
+    </div>
+    <div class="header-meta">
+      <div class="tag">LIVE DEMO</div><br/>
+      <div class="stack">
+        Couchbase Community 7.1.1<br/>
+        XDCR · Sync Gateway 3.1<br/>
+        FastAPI · React 18<br/>
+        Docker · GitHub
+      </div>
+    </div>
+  </div>
+  <div class="header-runway"></div>
+</header>
+
+<div class="container">
+
+<!-- ════════════════════════════════════════════════════════════
+     EXECUTIVE SUMMARY
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">01 · Business Overview</div>
+  <h2>What Problem Does This Solve?</h2>
+
+  <div class="grid-2" style="margin-bottom: 20px;">
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <div style="font-size: 28px; margin-bottom: 10px;">⚠️</div>
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--red); margin-bottom: 10px;">The Challenge</h3>
+      <p style="font-size: 14px; color: var(--grey-text); line-height: 1.7;">Airport terminal systems depend on a central cloud server for flight data, passenger records, and baggage routing rules. When that connection fails — due to a network outage, maintenance window, or cyber incident — <strong>staff lose visibility, bags get misrouted, and passengers miss flights.</strong></p>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <div style="font-size: 28px; margin-bottom: 10px;">✅</div>
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--green); margin-bottom: 10px;">Our Solution</h3>
+      <p style="font-size: 14px; color: var(--grey-text); line-height: 1.7;">We deploy a <strong>local Couchbase database at every terminal (Edge Node)</strong> that keeps operating independently. All data syncs to the central cloud when connected, and automatically reconciles when reconnected — with a human-in-the-loop review when conflicts arise.</p>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div style="font-size: 32px; margin-bottom: 8px;">🛄</div>
+      <h4 style="font-weight: 700; margin-bottom: 6px;">Zero Downtime</h4>
+      <p style="font-size: 13px; color: var(--grey-text);">Terminal keeps routing registered baggage even with no cloud connectivity</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size: 32px; margin-bottom: 8px;">👮</div>
+      <h4 style="font-weight: 700; margin-bottom: 6px;">IATA Compliance</h4>
+      <p style="font-size: 13px; color: var(--grey-text);">Passenger no-show triggers instant bag hold — mandatory aviation safety rule enforced automatically</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size: 32px; margin-bottom: 8px;">🧑‍✈️</div>
+      <h4 style="font-weight: 700; margin-bottom: 6px;">Human Control</h4>
+      <p style="font-size: 13px; color: var(--grey-text);">Duty Manager reviews every data conflict — no automated override for safety-critical decisions</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     ARCHITECTURE
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">02 · System Architecture</div>
+  <h2>How the System Is Structured</h2>
+
+  <div class="diagram-wrap" style="margin-bottom: 20px;">
+    <svg width="100%" viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+      <!-- CLOUD / CONTROL TOWER -->
+      <rect x="330" y="20" width="240" height="100" rx="12" fill="#0c2340" stroke="#003580" stroke-width="2"/>
+      <text x="450" y="52" text-anchor="middle" fill="white" font-size="13" font-weight="700">✈  CONTROL TOWER</text>
+      <text x="450" y="72" text-anchor="middle" fill="#94a3b8" font-size="11">(Couchbase Main — Cloud)</text>
+      <text x="450" y="92" text-anchor="middle" fill="#22d3ee" font-size="11">Central Operations Hub</text>
+      <text x="450" y="108" text-anchor="middle" fill="#f59e0b" font-size="10">Departure Management · Flight Control · Directives</text>
+
+      <!-- SYNC GATEWAY -->
+      <rect x="370" y="148" width="160" height="36" rx="6" fill="#1e3a5f" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="450" y="168" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">Sync Gateway 3.1</text>
+      <text x="450" y="180" text-anchor="middle" fill="#64748b" font-size="9">API Bridge · Auth · Routing</text>
+      <line x1="450" y1="120" x2="450" y2="148" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+      <!-- XDCR LABEL -->
+      <text x="450" y="210" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="600">⟵  XDCR REPLICATION (Inter-Terminal Data Link)  ⟶</text>
+
+      <!-- TERMINAL A -->
+      <rect x="30" y="240" width="200" height="130" rx="10" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+      <text x="130" y="266" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">TERMINAL A</text>
+      <text x="130" y="284" text-anchor="middle" fill="#7d8590" font-size="10">Edge Node · Couchbase</text>
+      <text x="130" y="308" text-anchor="middle" fill="white" font-size="11">Check-in · Security</text>
+      <text x="130" y="326" text-anchor="middle" fill="#3fb950" font-size="10">● OPERATIONAL</text>
+      <text x="130" y="344" text-anchor="middle" fill="#f59e0b" font-size="10">Belts: A1 · A2</text>
+      <text x="130" y="360" text-anchor="middle" fill="#94a3b8" font-size="9">Always writing locally</text>
+
+      <!-- TERMINAL B -->
+      <rect x="350" y="240" width="200" height="130" rx="10" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+      <text x="450" y="266" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">TERMINAL B</text>
+      <text x="450" y="284" text-anchor="middle" fill="#7d8590" font-size="10">Edge Node · Couchbase</text>
+      <text x="450" y="308" text-anchor="middle" fill="white" font-size="11">Conveyor · Loading</text>
+      <text x="450" y="326" text-anchor="middle" fill="#3fb950" font-size="10">● OPERATIONAL</text>
+      <text x="450" y="344" text-anchor="middle" fill="#f59e0b" font-size="10">Belts: B1 · B2</text>
+      <text x="450" y="360" text-anchor="middle" fill="#94a3b8" font-size="9">Always writing locally</text>
+
+      <!-- TERMINAL C -->
+      <rect x="670" y="240" width="200" height="130" rx="10" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+      <text x="770" y="266" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">TERMINAL C</text>
+      <text x="770" y="284" text-anchor="middle" fill="#7d8590" font-size="10">Edge Node · Couchbase</text>
+      <text x="770" y="308" text-anchor="middle" fill="white" font-size="11">Aircraft Loading · Gate</text>
+      <text x="770" y="326" text-anchor="middle" fill="#3fb950" font-size="10">● OPERATIONAL</text>
+      <text x="770" y="344" text-anchor="middle" fill="#f59e0b" font-size="10">Belt: C1</text>
+      <text x="770" y="360" text-anchor="middle" fill="#94a3b8" font-size="9">Always writing locally</text>
+
+      <!-- XDCR ARROWS -->
+      <line x1="330" y1="184" x2="230" y2="240" stroke="#238636" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="450" y1="184" x2="450" y2="240" stroke="#238636" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="570" y1="184" x2="670" y2="240" stroke="#238636" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="230" y1="280" x2="330" y2="184" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-cyan)"/>
+      <line x1="450" y1="240" x2="450" y2="184" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-cyan)"/>
+      <line x1="670" y1="280" x2="570" y2="184" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-cyan)"/>
+
+      <!-- ARROW MARKERS -->
+      <defs>
+        <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#238636"/>
+        </marker>
+        <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#22d3ee"/>
+        </marker>
+      </defs>
+
+      <!-- LEGEND -->
+      <line x1="30" y1="400" x2="60" y2="400" stroke="#238636" stroke-width="2"/>
+      <text x="68" y="404" fill="#64748b" font-size="10">Cloud → Terminal (Directives)</text>
+      <line x1="220" y1="400" x2="250" y2="400" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="258" y="404" fill="#64748b" font-size="10">Terminal → Cloud (Bag Data)</text>
+      <text x="460" y="404" fill="#f59e0b" font-size="10" font-weight="600">↕ Both directions = XDCR Replication</text>
+    </svg>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <h4 style="font-weight:700; margin-bottom:8px; font-size:14px;">🏗️ Control Tower (Cloud)</h4>
+      <p style="font-size:13px; color:var(--grey-text);">Central Couchbase Main cluster. Manages all flight schedules, cancellation directives, and receives real-time bag data from all terminals via XDCR replication.</p>
+    </div>
+    <div class="card">
+      <h4 style="font-weight:700; margin-bottom:8px; font-size:14px;">🖥️ Terminal Nodes (Edge)</h4>
+      <p style="font-size:13px; color:var(--grey-text);">Each airport terminal runs its own Couchbase instance. Operates fully autonomously — check-in, routing, scanning — even with zero cloud connectivity.</p>
+    </div>
+    <div class="card">
+      <h4 style="font-weight:700; margin-bottom:8px; font-size:14px;">🔄 XDCR Data Link</h4>
+      <p style="font-size:13px; color:var(--grey-text);">Cross Data Centre Replication keeps all nodes in sync in real time. When a terminal goes offline, it queues writes locally and syncs when the link is restored.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     DEPARTURES BOARD
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">03 · Live System View</div>
+  <h2>Operations Dashboard — Departure Board</h2>
+  <div class="dep-board">
+    <div class="dep-board-header">
+      <span class="dep-board-title">✈  ARLANDA AIRPORT — BAGGAGE OPERATIONS CENTRE</span>
+      <span class="dep-board-live">● LIVE</span>
+    </div>
+    <div class="dep-row dep-row-head">
+      <span>FLIGHT</span><span>DESTINATION</span><span>DEPARTURE</span><span>GATE · BELT</span><span>STATUS</span>
+    </div>
+    <div class="dep-row">
+      <span class="dep-flight">SK101</span>
+      <span class="dep-dest">London Heathrow</span>
+      <span class="dep-time">08:30</span>
+      <span class="dep-gate">A12 · A1</span>
+      <span class="dep-status-board">BOARDING</span>
+    </div>
+    <div class="dep-row">
+      <span class="dep-flight">SK202</span>
+      <span class="dep-dest">Paris CDG</span>
+      <span class="dep-time">09:15</span>
+      <span class="dep-gate">B3 · A2</span>
+      <span class="dep-status-ok">SCHEDULED</span>
+    </div>
+    <div class="dep-row">
+      <span class="dep-flight">SK303</span>
+      <span class="dep-dest">Berlin Brandenburg</span>
+      <span class="dep-time">10:00</span>
+      <span class="dep-gate">C7 · B1</span>
+      <span class="dep-status-ok" style="color:#64748b">DEPARTED</span>
+    </div>
+    <div class="dep-row">
+      <span class="dep-flight">SK404</span>
+      <span class="dep-dest">Oslo Gardermoen</span>
+      <span class="dep-time">11:30</span>
+      <span class="dep-gate">A5 · B2</span>
+      <span class="dep-status-ok">SCHEDULED</span>
+    </div>
+    <div class="dep-row">
+      <span class="dep-flight">SK505</span>
+      <span class="dep-dest">Amsterdam Schiphol</span>
+      <span class="dep-time">12:45</span>
+      <span class="dep-gate">D2 · C1</span>
+      <span class="dep-status-board">BOARDING</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SCENARIO 1
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">04 · Demo Scenario 1</div>
+  <h2>Normal Outage &amp; Automatic Recovery</h2>
+  <p style="font-size:15px; color:var(--grey-text); margin-bottom:28px;">
+    This scenario demonstrates the core resilience capability — baggage operations continue uninterrupted even when the Inter-Terminal Data Link (XDCR) is severed.
+  </p>
+
+  <div class="grid-2">
+    <div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num red">1</div>
+          <div class="step-body">
+            <h4>🔴 Data Link Severed</h4>
+            <p>The XDCR replication between Terminal B and the Control Tower is paused — simulating a network outage, fibre cut, or maintenance window.</p>
+            <div class="note red">Terminal B is now operating in <strong>Isolated Mode</strong>. Staff see no change — operations continue normally.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num amber">2</div>
+          <div class="step-body">
+            <h4>✈ Bags Keep Moving — Offline</h4>
+            <p>Passengers check in. Bags are scanned, assigned to Loading Bay B2, and registered in the local Couchbase database. All data is queued for sync with <span class="pill pill-amber">SYNC PENDING</span> status.</p>
+            <div class="note amber">The system writes locally first. No data is lost. Edge has <strong>+3 bags</strong> that Main hasn't seen yet.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num green">3</div>
+          <div class="step-body">
+            <h4>🟢 Link Restored — Auto Sync</h4>
+            <p>The XDCR data link is re-established. All queued bag records are automatically pushed to the Control Tower cloud. Both systems reconcile to a consistent state.</p>
+            <div class="note green">Control Tower now shows Edge = Main = same bag count. <strong>IN SYNC ✓</strong> — No human action required.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="diagram-wrap" style="padding:24px;">
+      <svg width="100%" viewBox="0 0 380 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- STATE 1: OFFLINE -->
+        <text x="190" y="22" text-anchor="middle" fill="#dc2626" font-size="11" font-weight="700">STATE 1 — LINK SEVERED</text>
+        <rect x="120" y="30" width="140" height="50" rx="8" fill="#0c2340" stroke="#003580" stroke-width="1.5"/>
+        <text x="190" y="52" text-anchor="middle" fill="white" font-size="11" font-weight="600">CONTROL TOWER</text>
+        <text x="190" y="68" text-anchor="middle" fill="#94a3b8" font-size="9">Bags: 20 (old count)</text>
+        <!-- BROKEN LINK -->
+        <line x1="190" y1="80" x2="190" y2="100" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,3"/>
+        <text x="214" y="95" fill="#dc2626" font-size="10" font-weight="700">✕ SEVERED</text>
+        <rect x="110" y="110" width="160" height="50" rx="8" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+        <text x="190" y="132" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">TERMINAL B</text>
+        <text x="190" y="148" text-anchor="middle" fill="#f59e0b" font-size="9">Bags: 23 — writing offline</text>
+
+        <!-- STATE 2: SYNC -->
+        <text x="190" y="190" text-anchor="middle" fill="#16a34a" font-size="11" font-weight="700">STATE 2 — LINK RESTORED</text>
+        <rect x="120" y="200" width="140" height="50" rx="8" fill="#0c2340" stroke="#003580" stroke-width="1.5"/>
+        <text x="190" y="222" text-anchor="middle" fill="white" font-size="11" font-weight="600">CONTROL TOWER</text>
+        <text x="190" y="238" text-anchor="middle" fill="#3fb950" font-size="9">Bags: 23 ✓ SYNCED</text>
+        <line x1="190" y1="250" x2="190" y2="270" stroke="#238636" stroke-width="2.5" marker-end="url(#arr2)"/>
+        <line x1="190" y1="270" x2="190" y2="250" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr3)"/>
+        <rect x="110" y="280" width="160" height="50" rx="8" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+        <text x="190" y="302" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">TERMINAL B</text>
+        <text x="190" y="318" text-anchor="middle" fill="#3fb950" font-size="9">Bags: 23 — IN SYNC ✓</text>
+
+        <defs>
+          <marker id="arr2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#238636"/>
+          </marker>
+          <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#22d3ee"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SCENARIO 2 — CONFLICT
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">05 · Demo Scenario 2</div>
+  <h2>Flight Cancellation Conflict — Split-Brain Resolution</h2>
+  <p style="font-size:15px; color:var(--grey-text); margin-bottom:28px;">
+    This is the <strong>core hackathon scenario</strong>. The Control Tower cancels a flight while a terminal is offline. When sync restores, the two systems have conflicting states — a human Duty Manager must intervene.
+  </p>
+
+  <div class="steps" style="margin-bottom: 32px;">
+    <div class="step">
+      <div class="step-num red">1</div>
+      <div class="step-body">
+        <h4>🔴 Terminal B Goes Offline (Data Link Severed)</h4>
+        <p>Terminal B loses connectivity to the Control Tower. Bags for Flight SK202 (Paris CDG) continue to be checked in and routed to Loading Bay A2 — staff at Terminal B have no idea anything is wrong.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num red">2</div>
+      <div class="step-body">
+        <h4>📢 Control Tower Issues Cancellation Directive</h4>
+        <p>A Control Tower operator cancels Flight SK202 — perhaps due to crew unavailability or technical fault. This directive is logged in the Control Tower cloud database. <strong>Terminal B never receives it.</strong></p>
+        <div class="note red">⚠ Diverged State: Control Tower says SK202 = CANCELLED. Terminal B still says SK202 = SCHEDULED and is routing bags to the aircraft.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num amber">3</div>
+      <div class="step-body">
+        <h4>🔁 Data Link Restored — Conflict Detected</h4>
+        <p>XDCR replication resumes. The system detects that Terminal B has active bags routing for a flight the Control Tower has cancelled. A conflict alert is raised in the Baggage Operations Dashboard.</p>
+        <div class="note amber">Couchbase XDCR uses timestamp-based conflict detection (CAS — Compare-And-Swap). The system flags this as a <strong>Operational Discrepancy</strong> requiring human review.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num green">4</div>
+      <div class="step-body">
+        <h4>🧑‍✈️ Duty Manager Reviews &amp; Resolves</h4>
+        <p>The Duty Manager at Terminal B opens the Split-Brain Resolution panel. They can see exactly which bags are affected and choose one of two resolution options.</p>
+        <div class="note green">The system never auto-resolves safety-critical conflicts. A human makes the final call — every decision is audit-logged with operator ID and timestamp.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESOLUTION OPTIONS -->
+  <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Resolution Options Available to Duty Manager</h3>
+  <div class="resolution-grid">
+    <div class="res-card cloud">
+      <h3>☁ Option A: Accept Cloud Directive</h3>
+      <p style="font-size:13px; color:#0369a1; margin-bottom:12px; font-weight:500;">Follow the Control Tower cancellation order — IATA-compliant, safety-first approach.</p>
+      <ul>
+        <li>Flight SK202 status → <strong>CANCELLED</strong></li>
+        <li>All active registered baggage → <strong>ON HOLD</strong></li>
+        <li>Bags removed from Loading Bay A2 queue</li>
+        <li>Audit log entry created with Duty Manager ID</li>
+        <li>Passengers notified via DCS system</li>
+      </ul>
+    </div>
+    <div class="res-card manual">
+      <h3>✎ Option B: Manual Operational Update</h3>
+      <p style="font-size:13px; color:#92400e; margin-bottom:12px; font-weight:500;">Operator override — flight cancelled but bags diverted to a special handling belt.</p>
+      <ul>
+        <li>Flight SK202 status → <strong>CANCELLED</strong></li>
+        <li>All active registered baggage → <strong>Belt D12</strong> (Emergency Divert)</li>
+        <li>Bags physically redirected to temporary staging area</li>
+        <li>Audit log entry created with target belt ID</li>
+        <li>Enables ground crew to manually process bags</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SCENARIO 3 — MULTI-TERMINAL
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">06 · Advanced Scenario</div>
+  <h2>Multi-Terminal Network — Control Tower Sends Directive</h2>
+  <p style="font-size:15px; color:var(--grey-text); margin-bottom:28px;">
+    What happens when the airport has <strong>multiple terminals</strong>, and only one goes offline when the Control Tower issues a cancellation? This is the realistic large-airport scenario.
+  </p>
+
+  <div class="diagram-wrap" style="margin-bottom: 28px;">
+    <svg width="100%" viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg">
+      <!-- CONTROL TOWER -->
+      <rect x="330" y="10" width="240" height="80" rx="10" fill="#0c2340" stroke="#f59e0b" stroke-width="2.5"/>
+      <text x="450" y="38" text-anchor="middle" fill="white" font-size="14" font-weight="700">✈  CONTROL TOWER</text>
+      <text x="450" y="56" text-anchor="middle" fill="#94a3b8" font-size="10">Couchbase Main · Cloud</text>
+      <text x="450" y="72" text-anchor="middle" fill="#f59e0b" font-size="10">Issues: SK202 CANCELLED ← directive sent</text>
+
+      <!-- XDCR LINES -->
+      <!-- To Terminal A — delivered OK -->
+      <line x1="350" y1="90" x2="160" y2="200" stroke="#238636" stroke-width="2.5" marker-end="url(#ag)"/>
+      <text x="220" y="148" fill="#238636" font-size="10" font-weight="600" transform="rotate(-28,220,148)">✓ DELIVERED</text>
+
+      <!-- To Terminal B — FAILED (offline) -->
+      <line x1="450" y1="90" x2="450" y2="200" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ar)"/>
+      <text x="470" y="152" fill="#dc2626" font-size="10" font-weight="600">✕ OFFLINE</text>
+
+      <!-- To Terminal C — delivered OK -->
+      <line x1="550" y1="90" x2="740" y2="200" stroke="#238636" stroke-width="2.5" marker-end="url(#ag)"/>
+      <text x="672" y="148" fill="#238636" font-size="10" font-weight="600" transform="rotate(28,672,148)">✓ DELIVERED</text>
+
+      <!-- TERMINAL A — received -->
+      <rect x="30" y="200" width="200" height="130" rx="10" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+      <text x="130" y="226" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">TERMINAL A</text>
+      <text x="130" y="244" text-anchor="middle" fill="#7d8590" font-size="10">Check-in &amp; Security</text>
+      <text x="130" y="268" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">SK202 → CANCELLED ✓</text>
+      <text x="130" y="286" text-anchor="middle" fill="#3fb950" font-size="10">Bags held at check-in</text>
+      <text x="130" y="310" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">NO CONFLICT</text>
+
+      <!-- TERMINAL B — OFFLINE / CONFLICT -->
+      <rect x="350" y="200" width="200" height="130" rx="10" fill="#3d1515" stroke="#dc2626" stroke-width="2.5"/>
+      <text x="450" y="226" text-anchor="middle" fill="#f85149" font-size="12" font-weight="700">TERMINAL B  ⚠</text>
+      <text x="450" y="244" text-anchor="middle" fill="#7d8590" font-size="10">Conveyor &amp; Loading</text>
+      <text x="450" y="264" text-anchor="middle" fill="#f85149" font-size="10">OFFLINE — missed directive</text>
+      <text x="450" y="282" text-anchor="middle" fill="white" font-size="11" font-weight="600">SK202 still SCHEDULED</text>
+      <text x="450" y="298" text-anchor="middle" fill="#f59e0b" font-size="10">Routing bags to Belt A2 !</text>
+      <text x="450" y="318" text-anchor="middle" fill="#f85149" font-size="10" font-weight="700">⚠ SPLIT-BRAIN CONFLICT</text>
+
+      <!-- TERMINAL C — received -->
+      <rect x="670" y="200" width="200" height="130" rx="10" fill="#0a1f0f" stroke="#238636" stroke-width="2"/>
+      <text x="770" y="226" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">TERMINAL C</text>
+      <text x="770" y="244" text-anchor="middle" fill="#7d8590" font-size="10">Aircraft Loading &amp; Gate</text>
+      <text x="770" y="268" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">SK202 → CANCELLED ✓</text>
+      <text x="770" y="286" text-anchor="middle" fill="#3fb950" font-size="10">Loading halted at gate</text>
+      <text x="770" y="310" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">NO CONFLICT</text>
+
+      <!-- SYNC RESTORE ARROW + DUTY MANAGER -->
+      <line x1="450" y1="330" x2="450" y2="370" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#aa)"/>
+      <text x="474" y="355" fill="#f59e0b" font-size="10" font-weight="600">Sync Restored</text>
+
+      <!-- DUTY MANAGER BOX -->
+      <rect x="300" y="370" width="300" height="90" rx="10" fill="#1e1b4b" stroke="#818cf8" stroke-width="2"/>
+      <text x="450" y="396" text-anchor="middle" fill="white" font-size="13" font-weight="700">🧑‍✈️  DUTY MANAGER REVIEW</text>
+      <text x="450" y="416" text-anchor="middle" fill="#a5b4fc" font-size="10">Conflict flagged: Terminal B has 4 bags routing for cancelled SK202</text>
+      <text x="450" y="434" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="600">☁ Accept Cloud → Bags ON HOLD</text>
+      <text x="450" y="450" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="600">✎ Manual Update → Divert to Belt D12</text>
+
+      <defs>
+        <marker id="ag" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#238636"/>
+        </marker>
+        <marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#dc2626"/>
+        </marker>
+        <marker id="aa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="border-top: 3px solid var(--green);">
+      <h4 style="font-weight:700; margin-bottom:8px; font-size:14px; color:var(--green);">✓ Terminal A — No Issue</h4>
+      <p style="font-size:13px; color:var(--grey-text);">Received the cancellation directive in real time. Automatically stopped accepting bags for SK202. No human action needed.</p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--red);">
+      <h4 style="font-weight:700; margin-bottom:8px; font-size:14px; color:var(--red);">⚠ Terminal B — Conflict</h4>
+      <p style="font-size:13px; color:var(--grey-text);">Was offline when directive was issued. Kept routing bags for a cancelled flight. Duty Manager must review when link restores.</p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--green);">
+      <h4 style="font-weight:700; margin-bottom:8px; font-size:14px; color:var(--green);">✓ Terminal C — No Issue</h4>
+      <p style="font-size:13px; color:var(--grey-text);">Received the cancellation directive in real time. Halted aircraft loading at the gate. No human action needed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SCENARIO 4 — PASSENGER NO SHOW
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">07 · Demo Scenario 3</div>
+  <h2>Passenger No-Show — IATA Bag Offload Rule</h2>
+  <p style="font-size:15px; color:var(--grey-text); margin-bottom:28px;">
+    IATA mandates that if a passenger does not board, their checked bags <strong>must be removed from the aircraft immediately</strong>. This system enforces that rule automatically and in real time.
+  </p>
+  <div class="grid-2">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Passenger Checks In</h4>
+          <p>Erik Johansson checks in for SK101 to London Heathrow. His bag is tagged, weighed, and routed to Loading Bay A1. A passenger record is created: <span class="pill pill-blue">CHECKED IN</span></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num red">2</div>
+        <div class="step-body">
+          <h4>Gate Closes — Passenger Absent</h4>
+          <p>Boarding gate closes. Erik Johansson has not presented his boarding pass. Gate agent marks him as <span class="pill pill-red">NO SHOW</span> in the system.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num amber">3</div>
+        <div class="step-body">
+          <h4>Automatic Bag Hold (IATA Compliance)</h4>
+          <p>System instantly locates all bags belonging to Erik Johansson on SK101 and sets them to <span class="pill pill-amber">ON HOLD</span> with reason: Passenger No-Show. Belt assignment cleared.</p>
+          <div class="note amber">Alert raised in Baggage Operations Centre: <strong>"PASSENGER NO-SHOW — BAG HELD FOR OFFLOAD"</strong></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num green">4</div>
+        <div class="step-body">
+          <h4>Ground Staff Retrieve the Bag</h4>
+          <p>Loading crew receives the alert. The bag is physically removed from the aircraft hold before departure. Full audit trail recorded.</p>
+          <div class="note green">Flight SK101 departs on time. IATA security compliance maintained. ✓</div>
+        </div>
+      </div>
+    </div>
+    <div class="diagram-wrap" style="padding: 24px;">
+      <svg width="100%" viewBox="0 0 360 320" xmlns="http://www.w3.org/2000/svg">
+        <text x="180" y="20" text-anchor="middle" fill="#0c2340" font-size="12" font-weight="700">IATA NO-SHOW — SYSTEM FLOW</text>
+
+        <!-- PAX CHECKED IN -->
+        <rect x="80" y="35" width="200" height="45" rx="8" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+        <text x="180" y="57" text-anchor="middle" fill="#0369a1" font-size="12" font-weight="600">✈ Erik Johansson</text>
+        <text x="180" y="73" text-anchor="middle" fill="#0369a1" font-size="10">SK101 · CHECKED IN · Bag on Belt A1</text>
+        <line x1="180" y1="80" x2="180" y2="105" stroke="#64748b" stroke-width="1.5" marker-end="url(#ab)"/>
+
+        <!-- NO SHOW -->
+        <rect x="80" y="108" width="200" height="45" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+        <text x="180" y="130" text-anchor="middle" fill="#dc2626" font-size="12" font-weight="700">⚠ PASSENGER NO-SHOW</text>
+        <text x="180" y="146" text-anchor="middle" fill="#dc2626" font-size="10">Gate agent marks: absent at boarding</text>
+        <line x1="180" y1="153" x2="180" y2="178" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar2)"/>
+
+        <!-- SYSTEM ACTION -->
+        <rect x="60" y="180" width="240" height="55" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+        <text x="180" y="202" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700">⚡ AUTOMATIC ACTION</text>
+        <text x="180" y="218" text-anchor="middle" fill="#92400e" font-size="10">Bag status → ON HOLD</text>
+        <text x="180" y="232" text-anchor="middle" fill="#92400e" font-size="10">Belt cleared · Alert raised · Audit logged</text>
+        <line x1="180" y1="235" x2="180" y2="258" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag2)"/>
+
+        <!-- RESOLVED -->
+        <rect x="70" y="260" width="220" height="50" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+        <text x="180" y="282" text-anchor="middle" fill="#15803d" font-size="12" font-weight="700">✓ BAG OFFLOADED</text>
+        <text x="180" y="298" text-anchor="middle" fill="#15803d" font-size="10">Aircraft cleared · IATA compliant · On time</text>
+
+        <defs>
+          <marker id="ab" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#64748b"/>
+          </marker>
+          <marker id="ar2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#dc2626"/>
+          </marker>
+          <marker id="ag2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#16a34a"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     TECHNICAL STACK
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">08 · Technical Stack</div>
+  <h2>Technology Details</h2>
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology</th>
+          <th>Role in System</th>
+          <th>Port</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Edge Database</strong></td>
+          <td><span class="pill pill-blue">Couchbase Community 7.1.1</span></td>
+          <td>Local terminal node — always operational, primary write target</td>
+          <td><code>8091</code></td>
+        </tr>
+        <tr>
+          <td><strong>Cloud Database</strong></td>
+          <td><span class="pill pill-blue">Couchbase Community 7.1.1</span></td>
+          <td>Control Tower main node — receives all replicated data</td>
+          <td><code>8092</code></td>
+        </tr>
+        <tr>
+          <td><strong>Replication</strong></td>
+          <td><span class="pill pill-amber">XDCR</span></td>
+          <td>Cross Data Centre Replication — bi-directional sync between Edge and Main</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>API Gateway</strong></td>
+          <td><span class="pill pill-blue">Sync Gateway 3.1</span></td>
+          <td>Secure API bridge with authentication and conflict detection</td>
+          <td><code>4984</code></td>
+        </tr>
+        <tr>
+          <td><strong>Backend API</strong></td>
+          <td><span class="pill pill-green">FastAPI (Python 3.11)</span></td>
+          <td>REST API for baggage ops, flight control, conflict resolution, passengers</td>
+          <td><code>8000</code></td>
+        </tr>
+        <tr>
+          <td><strong>Frontend Dashboard</strong></td>
+          <td><span class="pill pill-green">React 18 + Vite</span></td>
+          <td>Real-time operations centre UI — Bloomberg terminal aesthetic</td>
+          <td><code>3000</code></td>
+        </tr>
+        <tr>
+          <td><strong>Deployment</strong></td>
+          <td><span class="pill pill-blue">Docker Compose</span></td>
+          <td>5-container orchestration — fully self-contained, single command startup</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     DOCKER + GITHUB
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">09 · Deployment</div>
+  <h2>Docker Hub &amp; GitHub</h2>
+  <div class="grid-2" style="margin-bottom: 20px;">
+    <a class="link-card" href="https://hub.docker.com/r/aparupada/resilient_baggage_operations" target="_blank">
+      <div class="link-icon" style="background: #e8f4fd;">🐳</div>
+      <div>
+        <h4>Docker Hub</h4>
+        <p>Pre-built images — no build tools needed</p>
+        <code>aparupada/resilient_baggage_operations</code>
+      </div>
+    </a>
+    <a class="link-card" href="https://github.com/AparupaBanerjee/ResilientBaggageOperationsApp" target="_blank">
+      <div class="link-icon" style="background: #f0f0f0;">⚙️</div>
+      <div>
+        <h4>GitHub Repository</h4>
+        <p>Full source code, setup scripts, documentation</p>
+        <code>AparupaBanerjee/ResilientBaggageOperationsApp</code>
+      </div>
+    </a>
+  </div>
+
+  <div class="card" style="background: #0a0e1a; border-color: #21262d;">
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#e6edf3; line-height:2.2;">
+      <span style="color:#484f58;"># ── Run on any Mac with Docker Desktop ──────────────────────────</span><br/>
+      <span style="color:#f59e0b;">$</span> curl -O https://raw.githubusercontent.com/AparupaBanerjee/ResilientBaggageOperationsApp/main/docker-compose.prod.yml<br/>
+      <span style="color:#f59e0b;">$</span> <span style="color:#3fb950;">cat</span> &gt; .env <span style="color:#22d3ee;">&lt;&lt; EOF</span><br/>
+      &nbsp;&nbsp;EDGE_COUCHBASE_HOST=couchbase-edge<br/>
+      &nbsp;&nbsp;MAIN_COUCHBASE_HOST=couchbase-main<br/>
+      &nbsp;&nbsp;COUCHBASE_USERNAME=Administrator<br/>
+      &nbsp;&nbsp;COUCHBASE_PASSWORD=password<br/>
+      &nbsp;&nbsp;COUCHBASE_BUCKET=baggage<br/>
+      <span style="color:#22d3ee;">EOF</span><br/>
+      <span style="color:#f59e0b;">$</span> docker compose -f docker-compose.prod.yml pull <span style="color:#484f58;">&amp;&amp; \</span><br/>
+      &nbsp;&nbsp;docker compose -f docker-compose.prod.yml up -d<br/>
+      <span style="color:#484f58;"># Wait ~2 minutes, then seed and open:</span><br/>
+      <span style="color:#f59e0b;">$</span> curl -X POST http://localhost:8000/simulate/seed<br/>
+      <span style="color:#f59e0b;">$</span> open http://localhost:3000
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     DEMO FLOW CHECKLIST
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-title">10 · Hackathon Demo Flow</div>
+  <h2>Step-by-Step Demo Script for Instructor</h2>
+  <div class="card">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+      <div>
+        <h4 style="font-size:14px; font-weight:700; color:var(--blue-mid); margin-bottom:16px; letter-spacing:0.05em;">PART 1 — NORMAL OPERATIONS (2 min)</h4>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--blue-dark); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">1</span>
+            <p style="font-size:13px;">Click <strong>SEED DATA</strong> — loads 5 flights + 20 bags + 20 passengers. Watch Edge &amp; Main counts sync in real time.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--blue-dark); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">2</span>
+            <p style="font-size:13px;">Click <strong>GENERATE LOAD</strong> (5 bags) — show bags appearing with <span class="pill pill-green">SYNCED</span> status.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--blue-dark); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">3</span>
+            <p style="font-size:13px;">Show <strong>WORKSTATIONS tab</strong> — Security / Conveyor / Loading checkpoints with live bag counts.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--blue-dark); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">4</span>
+            <p style="font-size:13px;">Show <strong>PASSENGERS tab</strong> — select a passenger, click <strong>NO SHOW</strong>, confirm bag goes to ON HOLD instantly.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:14px; font-weight:700; color:var(--red); margin-bottom:16px; letter-spacing:0.05em;">PART 2 — SPLIT-BRAIN SCENARIO (3 min)</h4>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--red); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">5</span>
+            <p style="font-size:13px;">Click <strong>SIMULATE OUTAGE</strong> — XDCR pauses. Node diagram shows DISCONNECTED. Add 2-3 bags — they show <span class="pill pill-amber">EDGE ONLY</span>.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--red); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">6</span>
+            <p style="font-size:13px;">In <strong>SIMULATION CONTROLS → CLOUD CANCEL</strong> — select a flight (e.g. SK101), click CANCEL. Directive stored in cloud only.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--red); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">7</span>
+            <p style="font-size:13px;">Click <strong>RESTORE CONNECTION</strong> — XDCR resumes. Conflict alert appears in Split-Brain panel with affected bags listed.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:var(--green); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;">8</span>
+            <p style="font-size:13px;">Click <strong>ACCEPT CLOUD</strong> or <strong>MANUAL UPDATE → D12</strong>. Show flight goes CANCELLED, bags updated. Check HISTORY tab.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer class="footer">
+  <p>Resilient Baggage Operations &nbsp;·&nbsp; Couchbase Hackathon 2026 &nbsp;·&nbsp; Built with Couchbase · FastAPI · React 18 · Docker</p>
+  <p style="margin-top:6px;">
+    <a href="https://github.com/AparupaBanerjee/ResilientBaggageOperationsApp" style="color:#60a5fa; text-decoration:none;">GitHub: ResilientBaggageOperationsApp</a>
+    &nbsp;·&nbsp;
+    <a href="https://hub.docker.com/r/aparupada/resilient_baggage_operations" style="color:#60a5fa; text-decoration:none;">Docker Hub: aparupada/resilient_baggage_operations</a>
+  </p>
+</footer>
+
+</body>
+</html>
