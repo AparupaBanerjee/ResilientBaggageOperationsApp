@@ -361,7 +361,6 @@
             <div class="m-tab on">LIVE OPS</div>
             <div class="m-tab">BAGGAGE HALL</div>
             <div class="m-tab">WORKSTATIONS</div>
-            <div class="m-tab">SYSTEM</div>
             <div class="m-tab">AUDIT</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -443,51 +442,8 @@
           </div>
         </div>
 
-        <!-- Row 2: Flight Board + Conveyor -->
-        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px;padding:10px 14px 0;align-items:start">
-          <!-- Flight Board -->
-          <div class="m-card">
-            <div class="m-card-hdr">
-              <span class="m-lbl">Flight Information</span>
-              <div style="margin-left:auto;background:#0d1117;border:1px solid #30363d;border-radius:3px;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#484f58">Search flight / dest…</div>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#7d8590">ARN / STOCKHOLM ARLANDA</span>
-            </div>
-            <table style="width:100%;border-collapse:collapse">
-              <thead>
-                <tr>
-                  <th class="m-th">Flight</th><th class="m-th">ORIG</th><th class="m-th">DEST</th>
-                  <th class="m-th">Dep.</th><th class="m-th">Arr.</th><th class="m-th">Gate</th>
-                  <th class="m-th">Belt</th><th class="m-th">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td class="m-td" style="font-weight:500">SK101</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">CPH</td><td class="m-td">06:45</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">A12</td><td class="m-td">A1</td><td class="m-td" style="color:#9e6a03;font-size:10px;font-weight:700">BOARDING</td></tr>
-                <tr><td class="m-td" style="font-weight:500">SK202</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">LHR</td><td class="m-td">08:20</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">B5</td><td class="m-td">A2</td><td class="m-td" style="color:#e6edf3;font-size:10px;font-weight:700">SCHEDULED</td></tr>
-                <tr><td class="m-td" style="font-weight:500">SK303</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">FRA</td><td class="m-td">09:10</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">C3</td><td class="m-td">B1</td><td class="m-td" style="color:#d29922;font-size:10px;font-weight:700">DELAYED</td></tr>
-                <tr><td class="m-td" style="font-weight:500">SK404</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">AMS</td><td class="m-td">05:30</td><td class="m-td" style="color:#3fb950">07:15</td><td class="m-td">D8</td><td class="m-td">B2</td><td class="m-td" style="color:#7d8590;font-size:10px;font-weight:700">DEPARTED</td></tr>
-                <tr><td class="m-td" style="font-weight:500">SK505</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">CDG</td><td class="m-td">11:55</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">E2</td><td class="m-td" style="opacity:.4">—</td><td class="m-td" style="color:#b22222;font-size:10px;font-weight:700;opacity:.5">CANCELLED</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <!-- Conveyor Screening -->
-          <div class="m-card">
-            <div class="m-card-hdr"><span class="m-lbl">Conveyor Screening</span></div>
-            <table style="width:100%;border-collapse:collapse">
-              <thead>
-                <tr><th class="m-th">Belt</th><th class="m-th">Speed</th><th class="m-th">Load</th><th class="m-th">Temp</th><th class="m-th">Status</th></tr>
-              </thead>
-              <tbody>
-                <tr><td class="m-td">A1</td><td class="m-td">1.2 m/s</td><td class="m-td">18%</td><td class="m-td">22°C</td><td class="m-td"><span class="m-pill" style="background:#0d2a18;color:#3fb950;border:1px solid #238636">OK</span></td></tr>
-                <tr><td class="m-td">A2</td><td class="m-td">1.1 m/s</td><td class="m-td">42%</td><td class="m-td">24°C</td><td class="m-td"><span class="m-pill" style="background:#0d2a18;color:#3fb950;border:1px solid #238636">OK</span></td></tr>
-                <tr><td class="m-td">B1</td><td class="m-td">0.8 m/s</td><td class="m-td">67%</td><td class="m-td">29°C</td><td class="m-td"><span class="m-pill" style="background:#3d280066;color:#d29922;border:1px solid #9e6a0344">WARN</span></td></tr>
-                <tr><td class="m-td">B2</td><td class="m-td">0.0 m/s</td><td class="m-td">88%</td><td class="m-td">41°C</td><td class="m-td"><span class="m-pill" style="background:#2e0d0d;color:#f85149;border:1px solid #b22222">JAM</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Belt Heatmap -->
-        <div class="m-card" style="margin:10px 14px 14px;border-radius:6px">
+        <!-- Belt Heatmap (above Flight Board) -->
+        <div class="m-card" style="margin:10px 14px 0;border-radius:6px">
           <div class="m-card-hdr" style="cursor:pointer">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="2" y="14" width="4" height="7" rx="1" stroke="#484f58" stroke-width="1.5"/><rect x="7" y="9" width="4" height="12" rx="1" stroke="#484f58" stroke-width="1.5"/><rect x="12" y="5" width="4" height="16" rx="1" stroke="#484f58" stroke-width="1.5"/><rect x="17" y="2" width="4" height="19" rx="1" stroke="#484f58" stroke-width="1.5"/></svg>
             <span class="m-lbl">Belt Heatmap</span>
@@ -529,6 +485,49 @@
               <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#b22222">● RED — Near capacity</div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#f87171;background:#2e0d0d;border:1px solid #b2222244;padding:1px 5px;border-radius:3px">JAM DETECTED</div>
             </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Flight Board + Conveyor (below Heatmap) -->
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px;padding:10px 14px 14px;align-items:start">
+          <!-- Flight Board -->
+          <div class="m-card">
+            <div class="m-card-hdr">
+              <span class="m-lbl">Flight Information</span>
+              <div style="margin-left:auto;background:#0d1117;border:1px solid #30363d;border-radius:3px;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#484f58">Search flight / dest…</div>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#7d8590">ARN / STOCKHOLM ARLANDA</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr>
+                  <th class="m-th">Flight</th><th class="m-th">ORIG</th><th class="m-th">DEST</th>
+                  <th class="m-th">Dep.</th><th class="m-th">Arr.</th><th class="m-th">Gate</th>
+                  <th class="m-th">Belt</th><th class="m-th">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="m-td" style="font-weight:500">SK101</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">CPH</td><td class="m-td">06:45</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">A12</td><td class="m-td">A1</td><td class="m-td" style="color:#9e6a03;font-size:10px;font-weight:700">BOARDING</td></tr>
+                <tr><td class="m-td" style="font-weight:500">SK202</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">LHR</td><td class="m-td">08:20</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">B5</td><td class="m-td">A2</td><td class="m-td" style="color:#e6edf3;font-size:10px;font-weight:700">SCHEDULED</td></tr>
+                <tr><td class="m-td" style="font-weight:500">SK303</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">FRA</td><td class="m-td">09:10</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">C3</td><td class="m-td">B1</td><td class="m-td" style="color:#d29922;font-size:10px;font-weight:700">DELAYED</td></tr>
+                <tr><td class="m-td" style="font-weight:500">SK404</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">AMS</td><td class="m-td">05:30</td><td class="m-td" style="color:#3fb950">07:15</td><td class="m-td">D8</td><td class="m-td">B2</td><td class="m-td" style="color:#7d8590;font-size:10px;font-weight:700">DEPARTED</td></tr>
+                <tr><td class="m-td" style="font-weight:500">SK505</td><td class="m-td" style="color:#3fb950">ARN</td><td class="m-td">CDG</td><td class="m-td">11:55</td><td class="m-td" style="color:#484f58">—</td><td class="m-td">E2</td><td class="m-td" style="opacity:.4">—</td><td class="m-td" style="color:#b22222;font-size:10px;font-weight:700;opacity:.5">CANCELLED</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Conveyor Screening -->
+          <div class="m-card">
+            <div class="m-card-hdr"><span class="m-lbl">Conveyor Screening</span></div>
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr><th class="m-th">Belt</th><th class="m-th">Speed</th><th class="m-th">Load</th><th class="m-th">Temp</th><th class="m-th">Status</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="m-td">A1</td><td class="m-td">1.2 m/s</td><td class="m-td">18%</td><td class="m-td">22°C</td><td class="m-td"><span class="m-pill" style="background:#0d2a18;color:#3fb950;border:1px solid #238636">OK</span></td></tr>
+                <tr><td class="m-td">A2</td><td class="m-td">1.1 m/s</td><td class="m-td">42%</td><td class="m-td">24°C</td><td class="m-td"><span class="m-pill" style="background:#0d2a18;color:#3fb950;border:1px solid #238636">OK</span></td></tr>
+                <tr><td class="m-td">B1</td><td class="m-td">0.8 m/s</td><td class="m-td">67%</td><td class="m-td">29°C</td><td class="m-td"><span class="m-pill" style="background:#3d280066;color:#d29922;border:1px solid #9e6a0344">WARN</span></td></tr>
+                <tr><td class="m-td">B2</td><td class="m-td">0.0 m/s</td><td class="m-td">88%</td><td class="m-td">41°C</td><td class="m-td"><span class="m-pill" style="background:#2e0d0d;color:#f85149;border:1px solid #b22222">JAM</span></td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
