@@ -15,7 +15,17 @@ const STATUS_COLOR = {
 
 const BELTS   = ['A1', 'A2', 'B1', 'B2']
 const FLIGHTS = { A1: 'SK101', A2: 'SK202', B1: 'SK303', B2: 'SK404' }
-const DEMO_COLOR = { A1: '#238636', A2: '#d29922', B1: '#9e6a03', B2: '#b22222' }
+const DEMO_COLOR  = { A1: '#238636', A2: '#ca8a04', B1: '#ea580c', B2: '#b22222' }
+const DEMO_BG     = { A1: '#0d2e1a', A2: '#3d3200', B1: '#3d1800', B2: '#2e0d0d' }
+const DEMO_TEXT   = { A1: '#3fb950', A2: '#eab308', B1: '#f97316', B2: '#f87171' }
+const DEMO_COUNTS = { A1: 2, A2: 4, B1: 8, B2: 12 }  // visual placeholder for demo
+
+function loadLabel(fillPct) {
+  if (fillPct > 75) return 'NEAR CAPACITY'
+  if (fillPct > 45) return 'HIGH LOAD'
+  if (fillPct > 20) return 'MODERATE'
+  return 'LOW LOAD'
+}
 
 function buildBeltData(bags, conveyors) {
   const map = {}
@@ -42,78 +52,96 @@ function buildBeltData(bags, conveyors) {
   return map
 }
 
-function BeltCell({ beltId, data, demoColor }) {
-  const max      = 15   // bags before "full"
-  const fillPct  = Math.min(100, (data.total / max) * 100)
-  const isJam    = data.jam
+const COLOR_LABEL = {
+  A1: 'GREEN — Low load',
+  A2: 'YELLOW — Moderate',
+  B1: 'ORANGE — High load',
+  B2: 'RED — Near capacity',
+}
+
+// kept separate so TEAM_GUIDE stays in sync
+
+function BeltCell({ beltId, data }) {
+  const max        = 15
+  const displayCount = DEMO_COUNTS[beltId] ?? data.total
+  const fillPct    = Math.min(100, (displayCount / max) * 100)
+  const isJam      = data.jam
   const isFault  = data.status === 'FAULT'
   const hasMis   = data.misrouted > 0
 
-  const borderColor = isJam   ? '#b22222'
-                    : isFault ? '#9e6a03'
-                    : hasMis  ? '#b22222'
-                    :           '#21262d'
+  const accentColor = isJam || hasMis ? '#b22222' : (DEMO_COLOR[beltId] ?? '#484f58')
+  const textColor   = isJam ? '#f87171' : (DEMO_TEXT[beltId] ?? '#e6edf3')
+  const bgColor     = DEMO_BG[beltId] ?? '#0d1117'
+  const colorLabel  = isJam ? 'JAM' : hasMis ? 'MISROUTED' : (COLOR_LABEL[beltId] ?? loadLabel(fillPct))
 
   return (
     <div style={{
-      background: '#0d1117',
-      border: `1px solid ${borderColor}`,
-      borderRadius: '4px',
-      padding: '10px 12px',
-      display: 'flex', flexDirection: 'column', gap: '6px',
-      flex: 1, minWidth: '100px',
+      background: bgColor,
+      border: `1px solid ${accentColor}`,
+      borderRadius: '6px',
+      padding: '8px 12px 8px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: '4px', flex: 1, minWidth: '120px', textAlign: 'center',
     }}>
-      {/* Belt ID + flight */}
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ ...mono, fontSize: '14px', fontWeight: 700, color: '#e6edf3' }}>{beltId}</span>
-        <span style={{ ...mono, fontSize: '10px', color: '#484f58' }}>{FLIGHTS[beltId] ?? '—'}</span>
+      {/* Belt ID */}
+      <div style={{ ...mono, fontSize: '18px', fontWeight: 700, color: textColor, lineHeight: 1 }}>
+        {beltId}
+      </div>
+
+      {/* Flight */}
+      <div style={{ ...mono, fontSize: '10px', color: '#64748b' }}>
+        {FLIGHTS[beltId] ?? '—'}
       </div>
 
       {/* Bag count */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-        <span style={{ ...mono, fontSize: '24px', fontWeight: 700, color: isJam ? '#b22222' : '#e6edf3', lineHeight: 1 }}>
-          {data.total}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+        <span style={{ ...mono, fontSize: '24px', fontWeight: 700, color: isJam ? '#f87171' : '#e6edf3', lineHeight: 1 }}>
+          {displayCount}
         </span>
         <span style={{ ...mono, fontSize: '10px', color: '#484f58' }}>bags</span>
       </div>
 
       {/* Density bar */}
-      <div style={{ height: '4px', background: '#21262d', borderRadius: '2px', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '4px', background: '#0d111780', borderRadius: '3px', overflow: 'hidden' }}>
         <div style={{
-          height: '100%',
-          width: `${fillPct}%`,
-          background: demoColor ?? (isJam ? '#b22222' : fillPct > 75 ? '#b22222' : fillPct > 45 ? '#9e6a03' : fillPct > 20 ? '#d29922' : '#238636'),
-          borderRadius: '2px',
+          height: '100%', width: `${fillPct}%`,
+          background: accentColor, borderRadius: '3px',
+          transition: 'width 0.4s ease',
         }} />
       </div>
 
-      {/* Status breakdown dots */}
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-        {Object.entries(STATUS_COLOR).map(([s, col]) => {
-          const n = data.byStatus[s] ?? 0
-          if (!n) return null
-          return (
-            <span key={s} style={{
-              ...mono, fontSize: '9px', color: col,
-              border: `1px solid ${col}55`, borderRadius: '2px',
-              padding: '0 4px', whiteSpace: 'nowrap',
-            }}>
-              {n} {s.replace('_', ' ')}
-            </span>
-          )
-        })}
+      {/* Color label */}
+      <div style={{ ...mono, fontSize: '10px', fontWeight: 600, color: accentColor }}>
+        ● {colorLabel}
       </div>
 
-      {/* Badges */}
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-        {isJam && <span style={{ ...mono, fontSize: '9px', color: '#b22222', fontWeight: 700 }}>JAM</span>}
-        {isFault && !isJam && <span style={{ ...mono, fontSize: '9px', color: '#9e6a03', fontWeight: 700 }}>FAULT</span>}
-        {hasMis && <span style={{ ...mono, fontSize: '9px', color: '#b22222' }}>⚠ {data.misrouted} MISROUTED</span>}
-        {data.heavy > 0 && <span style={{ ...mono, fontSize: '9px', color: '#9e6a03' }}>⚖ {data.heavy} HEAVY</span>}
-        {data.speed !== undefined && (
-          <span style={{ ...mono, fontSize: '9px', color: '#484f58' }}>{data.speed} m/s</span>
-        )}
-      </div>
+      {/* Alert badges */}
+      {(isFault || hasMis || data.heavy > 0) && (
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2px' }}>
+          {isFault && !isJam && <span style={{ ...mono, fontSize: '9px', color: '#9e6a03', background: '#3d280066', border: '1px solid #9e6a0344', padding: '1px 5px', borderRadius: '3px' }}>FAULT</span>}
+          {hasMis && <span style={{ ...mono, fontSize: '9px', color: '#f87171', background: '#2e0d0d', border: '1px solid #b2222244', padding: '1px 5px', borderRadius: '3px' }}>⚠ {data.misrouted} MISROUTED</span>}
+          {data.heavy > 0 && <span style={{ ...mono, fontSize: '9px', color: '#9e6a03', background: '#3d280066', border: '1px solid #9e6a0344', padding: '1px 5px', borderRadius: '3px' }}>⚖ {data.heavy} HEAVY</span>}
+        </div>
+      )}
+
+      {/* Status breakdown — only render if there's something to show */}
+      {Object.values(data.byStatus).some(n => n > 0) && (
+        <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {Object.entries(STATUS_COLOR).map(([s, col]) => {
+            const n = data.byStatus[s] ?? 0
+            if (!n) return null
+            return (
+              <span key={s} style={{
+                ...mono, fontSize: '9px', color: col,
+                background: `${col}15`, border: `1px solid ${col}44`,
+                borderRadius: '3px', padding: '1px 4px', whiteSpace: 'nowrap',
+              }}>
+                {n} {s.replace('_', ' ')}
+              </span>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -173,8 +201,8 @@ export default function BeltHeatmap() {
       </div>
 
       {!collapsed && (
-        <div style={{ padding: '12px 16px', display: 'flex', gap: '10px' }}>
-          {BELTS.map(b => <BeltCell key={b} beltId={b} data={beltData[b] ?? { total: 0, byStatus: {} }} demoColor={DEMO_COLOR[b]} />)}
+        <div style={{ padding: '8px 16px', display: 'flex', gap: '10px' }}>
+          {BELTS.map(b => <BeltCell key={b} beltId={b} data={beltData[b] ?? { total: 0, byStatus: {} }} />)}
         </div>
       )}
     </div>

@@ -5,9 +5,7 @@ import FlightBoard         from './components/FlightBoard.jsx'
 
 import SimulationControls  from './components/SimulationControls.jsx'
 import BeltHeatmap         from './components/BeltHeatmap.jsx'
-import DigitalTwin         from './components/DigitalTwin.jsx'
 import ROIDashboard        from './components/ROIDashboard.jsx'
-import IntegrationsPanel   from './components/IntegrationsPanel.jsx'
 import AuditLog            from './components/AuditLog.jsx'
 import AlertRail           from './components/AlertRail.jsx'
 import ShiftSummary               from './components/ShiftSummary.jsx'
@@ -104,12 +102,12 @@ export default function App() {
               <SplitBrainPanel isCloudOnline={health?.online ?? false} health={health} />
             </div>
 
-            {/* FlightBoard + ConveyorScreeningPanel side by side, same height */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '10px', alignItems: 'stretch' }}>
+            <BeltHeatmap />
+            {/* FlightBoard + ConveyorScreeningPanel side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '10px', alignItems: 'start' }}>
               <FlightBoard />
               <ConveyorScreeningPanel />
             </div>
-            <BeltHeatmap />
           </>
         )}
 
@@ -131,17 +129,7 @@ export default function App() {
         )}
 
         {/* ══════════════════════════════════════════════
-            TAB 4 — SYSTEM
-        ══════════════════════════════════════════════ */}
-        {activeTab === 'system' && (
-          <>
-            <DigitalTwin />
-            <IntegrationsPanel />
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════════
-            TAB 5 — AUDIT
+            TAB 4 — AUDIT
         ══════════════════════════════════════════════ */}
         {activeTab === 'audit' && (
           <AuditLog />

@@ -48,7 +48,7 @@ export default function FlightBoard() {
   }, [])
 
   return (
-    <div className="card" style={{ overflow: 'hidden', position: 'relative', height: '100%', boxSizing: 'border-box' }}>
+    <div className="card" style={{ overflow: 'hidden', position: 'relative' }}>
 
       {/* Header */}
       <div style={{

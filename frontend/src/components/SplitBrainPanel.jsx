@@ -99,7 +99,7 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
 
       {/* Header */}
       <div style={{
-        padding: '14px 20px 12px',
+        padding: '8px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <span className="label-upper" style={{ letterSpacing: '0.12em' }}>Split-Brain Resolution</span>
@@ -145,12 +145,12 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
       </div>
 
       {/* Node grid — square boxes */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px', padding: '0 20px 14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px', padding: '0 16px 10px' }}>
 
         {/* Edge node */}
         <div style={{
           background: '#0a1f0f', border: '1px solid #238636', borderRadius: '8px',
-          padding: '14px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+          padding: '8px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
           boxShadow: '0 0 14px 2px rgba(35,134,54,0.10)',
           position: 'relative',
         }}>
@@ -160,15 +160,15 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
             </span>
           </span>
-          <div style={{ background: 'rgba(35,134,54,0.15)', border: '1px solid rgba(35,134,54,0.3)', borderRadius: '8px', padding: '8px' }}>
-            <Server size={22} color="#3fb950" />
+          <div style={{ background: 'rgba(35,134,54,0.15)', border: '1px solid rgba(35,134,54,0.3)', borderRadius: '8px', padding: '5px' }}>
+            <Server size={16} color="#3fb950" />
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '10px', fontWeight: 700, color: '#3fb950', letterSpacing: '0.1em', marginBottom: '2px' }}>EDGE NODE</div>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#7d8590' }}>Always Writing</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '22px', fontWeight: 700, color: '#3fb950', lineHeight: 1 }}>{edgeDocs}</span>
+            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '17px', fontWeight: 700, color: '#3fb950', lineHeight: 1 }}>{edgeDocs}</span>
             <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#484f58', marginLeft: '4px' }}>bags</span>
           </div>
           <div style={{
@@ -210,8 +210,8 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
         <div style={{
           background: isCloudOnline ? '#071e26' : '#1a0d0d',
           border: `1px solid ${isCloudOnline ? 'rgba(34,211,238,0.5)' : '#4a1515'}`,
-          borderRadius: '8px', padding: '14px 12px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+          borderRadius: '8px', padding: '8px 12px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
           boxShadow: isCloudOnline ? '0 0 14px 2px rgba(34,211,238,0.08)' : 'none',
           opacity: isCloudOnline ? 1 : 0.6, transition: 'opacity 0.3s',
           position: 'relative',
@@ -229,9 +229,9 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
           <div style={{
             background: isCloudOnline ? 'rgba(34,211,238,0.1)' : 'rgba(248,81,73,0.08)',
             border: isCloudOnline ? '1px solid rgba(34,211,238,0.25)' : '1px solid rgba(248,81,73,0.2)',
-            borderRadius: '8px', padding: '8px', transition: 'all 0.3s',
+            borderRadius: '8px', padding: '5px', transition: 'all 0.3s',
           }}>
-            <GitMerge size={22} color={isCloudOnline ? '#22d3ee' : '#b22222'} />
+            <GitMerge size={16} color={isCloudOnline ? '#22d3ee' : '#b22222'} />
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{
@@ -243,7 +243,7 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '22px', fontWeight: 700, color: isCloudOnline ? '#22d3ee' : '#4a1515', lineHeight: 1 }}>
+            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '17px', fontWeight: 700, color: isCloudOnline ? '#22d3ee' : '#4a1515', lineHeight: 1 }}>
               {isCloudOnline ? mainDocs : '—'}
             </span>
             {isCloudOnline && <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '9px', color: '#484f58', marginLeft: '4px' }}>bags</span>}

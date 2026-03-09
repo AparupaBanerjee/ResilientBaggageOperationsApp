@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 const MAX_POINTS = 30
 const W = 600
-const H = 80
+const H = 56
 const PAD_TOP = 8
 const PAD_LEFT = 0
 const PAD_RIGHT = 0
@@ -44,10 +44,10 @@ export default function ThroughputChart({ health }) {
       background: 'linear-gradient(160deg, #0d1117 60%, #071e26 100%)',
       border: '1px solid #1e2d3d',
       borderRadius: '12px',
-      padding: '20px 24px 16px',
+      padding: '10px 16px 8px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '12px',
+      gap: '8px',
       height: '100%',
       boxSizing: 'border-box',
     }}>
@@ -77,7 +77,7 @@ export default function ThroughputChart({ health }) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
           <span style={{
             fontFamily: 'IBM Plex Mono',
-            fontSize: '20px',
+            fontSize: '16px',
             fontWeight: 600,
             color: current > 0 ? '#22d3ee' : '#4b6a7a',
             textShadow: current > 0 ? '0 0 12px rgba(34,211,238,0.4)' : 'none',
@@ -158,7 +158,7 @@ export default function ThroughputChart({ health }) {
       {/* Footer: peak */}
       <div style={{
         borderTop: '1px solid #1e2d3d',
-        paddingTop: '8px',
+        paddingTop: '5px',
         display: 'flex',
         gap: '16px',
       }}>

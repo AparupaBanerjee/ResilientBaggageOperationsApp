@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "baggage-backend"
+    static_configs:
+      - targets: ["baggage-backend:8000"]
+    metrics_path: "/metrics"
+
+  - job_name: "couchbase-edge"
+    static_configs:
+      - targets: ["couchbase-edge:8091"]
+    metrics_path: "/_prometheus/metrics"
+    basic_auth:
+      username: "Administrator"
+      password_file: /run/secrets/cb_password
+
+  - job_name: "couchbase-main"
+    static_configs:
+      - targets: ["couchbase-main:8091"]
+    metrics_path: "/_prometheus/metrics"
+    basic_auth:
+      username: "Administrator"
+      password_file: /run/secrets/cb_password
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]

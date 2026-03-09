@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: baggage-ops
+  labels:
+    app: swedavia-baggage
+    env: production

@@ -125,7 +125,6 @@ const TABS = [
   { id: 'ops',          label: 'LIVE OPS' },
   { id: 'baggage',      label: 'BAGGAGE HALL' },
   { id: 'workstations', label: 'WORKSTATIONS' },
-  { id: 'system',       label: 'SYSTEM' },
   { id: 'audit',        label: 'AUDIT' },
 ]
 

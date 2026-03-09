@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baggage-backend
+  namespace: baggage-ops
+  labels:
+    app: baggage-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: baggage-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: baggage-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/swedavia/baggage-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: EDGE_COUCHBASE_HOST
+              value: "couchbase-edge-svc"
+            - name: MAIN_COUCHBASE_HOST
+              value: "couchbase-main-svc"
+            - name: COUCHBASE_USERNAME
+              value: "Administrator"
+            - name: COUCHBASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: couchbase-credentials
+                  key: password
+            - name: COUCHBASE_BUCKET
+              value: "baggage"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baggage-backend-svc
+  namespace: baggage-ops
+spec:
+  selector:
+    app: baggage-backend
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: baggage-api-ingress
+  namespace: baggage-ops
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+spec:
+  rules:
+    - host: api.baggage.swedavia.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: baggage-backend-svc
+                port:
+                  number: 8000
