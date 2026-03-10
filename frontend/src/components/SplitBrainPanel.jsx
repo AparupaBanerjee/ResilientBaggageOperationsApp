@@ -102,7 +102,7 @@ export default function SplitBrainPanel({ isCloudOnline, health }) {
         padding: '8px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span className="label-upper" style={{ letterSpacing: '0.12em' }}>Split-Brain Resolution</span>
+        <span className="label-upper" style={{ letterSpacing: '0.12em' }}>Hybrid Architecture</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <motion.span
             key={isCloudOnline ? 'on' : 'off'}
